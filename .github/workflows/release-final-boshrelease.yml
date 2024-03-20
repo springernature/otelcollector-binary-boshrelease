@@ -7,7 +7,7 @@ on:
         - "main"
 
 env:
-    RELEASE="otelcollectory-binary"
+    RELEASE: "otelcollectory-binary"
 
 permissions: {}
 
