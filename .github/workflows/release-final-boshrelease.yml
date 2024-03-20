@@ -15,7 +15,7 @@ env:
 permissions: {}
 
 jobs:
-  make:
+  build:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -23,7 +23,10 @@ jobs:
       with:
         fetch-depth: 0
         lfs: true
-    
+
+    - name: Checkout LFS blobs
+      run: git lfs checkout
+
     - name: Create final bosh release
       uses: orange-cloudfoundry/bosh-release-action@v2
       with:
