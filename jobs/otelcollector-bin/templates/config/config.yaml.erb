@@ -1,0 +1,7 @@
+<%=
+conf = p('otelcollector-bin.config')
+unless conf.respond_to?(:keys)
+    conf = YAML::load(conf)
+end
+YAML::dump(conf)
+%>

@@ -1,0 +1,6 @@
+check process otelcollector-bin
+  with pidfile /var/vcap/sys/run/otelcollector-bin/otelcollector-bin.pid
+  start program "/var/vcap/jobs/otelcollector-bin/bin/ctl start"
+  stop program "/var/vcap/jobs/otelcollector-bin/bin/ctl stop"
+  group vcap
+

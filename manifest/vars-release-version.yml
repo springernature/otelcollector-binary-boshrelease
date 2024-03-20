@@ -1,0 +1,5 @@
+releases:
+- name: otelcollector-binary
+  url: https://github.com/SpringerPE/otelcollector-binary-boshreleasereleases/download/v0.1/otelcollector-binary-0.1.tgz
+  version: 0.1
+  sha1: 4b6adbe246a88bddeb3d30321983d86710955217

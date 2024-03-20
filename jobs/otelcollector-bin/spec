@@ -1,0 +1,88 @@
+---
+name: otelcollector-bin
+description: OpenTelemetry Collector binary Release
+templates:
+  bin/ctl.erb: bin/ctl
+  bin/pre-start: bin/pre-start
+  data/properties.sh.erb: data/properties.sh
+  config/config.yaml.erb: config/config.yaml
+  config/ingress_port.yml.erb: config/ingress_port.yml
+  config/otel-collector.crt.erb: config/certs/otel-collector.crt
+  config/otel-collector.key.erb: config/certs/otel-collector.key
+  config/otel-collector-ca.crt.erb: config/certs/otel-collector-ca.crt
+
+packages:
+- otelcollector-linux-amd64
+
+provides:
+- name: otlp
+  type: exporter
+  properties:
+  - ingress.grpc.port
+
+properties:
+  enabled:
+    description: "Enable OTel Collector"
+    default: true
+  ingress.grpc.address:
+    description: "Address to listen on to receive OTLP over gRPC"
+    default: 0.0.0.0
+  ingress.grpc.port:
+    description: "Port the collector is listening on to receive OTLP over gRPC"
+    default: 9100
+  ingress.grpc.tls.ca_cert:
+    description: "CA root required for key/cert verification in gRPC ingress"
+  ingress.grpc.tls.cert:
+    description: "TLS server certificate for gRPC ingress"
+  ingress.grpc.tls.key:
+    description: "TLS server key for gRPC ingress"
+  ingress.loggr-protocol:
+    description: "Ingress protocol type for loggr-forwarder-agent job from loggregator-agent"
+    default: otelcol
+  otelcollector-bin.env:
+    description: Key/value hash of environment variables.
+    default: {}
+  otelcollector-bin.config:
+    description: Otel collector configuration file
+    default: |
+      extensions:
+        health_check:
+        pprof:
+          endpoint: 0.0.0.0:1777
+
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:4317
+            http:
+              endpoint: 0.0.0.0:4318
+
+        # Collect own metrics
+        prometheus:
+          config:
+            scrape_configs:
+            - job_name: 'otel-collector'
+              scrape_interval: 10s
+              static_configs:
+              - targets: ['0.0.0.0:8888']
+
+      processors:
+        batch:
+
+      exporters:
+        logging:
+          verbosity: detailed
+
+      service:
+        extensions: [health_check, pprof]
+        pipelines:
+          traces:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [logging]
+          metrics:
+            receivers: [otlp, prometheus]
+            processors: [batch]
+            exporters: [logging]
+

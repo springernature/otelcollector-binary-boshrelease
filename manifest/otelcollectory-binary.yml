@@ -1,0 +1,73 @@
+---
+name: otelcollector
+
+releases:
+- name: otelcollector-binary
+  version: latest
+
+instance_groups:
+- name: otelcollector
+  instances: 1
+  vm_type: small
+  stemcell: default
+  vm_extensions: []
+  azs: [z1, z2, z3]
+  networks:
+  - name: default
+  jobs:
+  - name: otelcollector-bin
+    release: otelcollector-binary
+    properties:
+      otelcollector-bin.config: |
+        extensions:
+          health_check:
+          pprof:
+            endpoint: 0.0.0.0:1777
+
+        receivers:
+          otlp:
+            protocols:
+              grpc:
+                endpoint: 0.0.0.0:4317
+              http:
+                endpoint: 0.0.0.0:4318
+
+          # Collect own metrics
+          prometheus:
+            config:
+              scrape_configs:
+              - job_name: 'otel-collector'
+                scrape_interval: 10s
+                static_configs:
+                - targets: ['0.0.0.0:8888']
+
+        processors:
+          batch:
+
+        exporters:
+          logging:
+            verbosity: detailed
+
+        service:
+          extensions: [health_check, pprof]
+          pipelines:
+            traces:
+              receivers: [otlp]
+              processors: [batch]
+              exporters: [logging]
+            metrics:
+              receivers: [otlp, prometheus]
+              processors: [batch]
+              exporters: [logging]
+
+stemcells:
+- alias: default
+  name: bosh-google-kvm-ubuntu-xenial-go_agent
+  version: latest
+
+update:
+  canaries: 1
+  max_in_flight: 1
+  serial: false
+  canary_watch_time: 1000-60000
+  update_watch_time: 1000-60000

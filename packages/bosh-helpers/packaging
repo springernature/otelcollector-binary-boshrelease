@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -e -x
+
+# Install shell helpers
+echo "Adding shell helpers ..."
+mkdir -p ${BOSH_INSTALL_TARGET}
+cp -av bosh-helpers/* ${BOSH_INSTALL_TARGET}/

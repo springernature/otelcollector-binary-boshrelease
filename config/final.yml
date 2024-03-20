@@ -1,0 +1,6 @@
+---
+name: otelcollector-binary
+blobstore:
+  provider: local
+  options:
+    blobstore_path: blobstore

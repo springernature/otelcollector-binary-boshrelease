@@ -1,0 +1,8 @@
+---
+name: otelcollector-linux-amd64
+
+dependencies: []
+
+files:
+- otelcollector-linux-amd64/otelcol-contrib_0.96.0_linux_amd64.tar.gz  # https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.96.0/otelcol-contrib_0.96.0_linux_amd64.tar.gz
+- bosh-helpers/**/*

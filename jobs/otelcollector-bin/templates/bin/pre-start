@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#
+set -e # exit immediately if a simple command exits with a non-zero status
+set -u # report the usage of uninitialized variables
+
+# Load job properties
+source /var/vcap/jobs/otelcollector-bin/data/properties.sh
+
+# Setup env vars and folders for the ctl script
+source /var/vcap/jobs/otelcollector-bin/packages/otelcollector-linux-amd64/bosh-helpers/setup.sh "otelcollector-bin"
+
+# Load function lib (alway before setup, there are some global variables needed)
+source /var/vcap/jobs/otelcollector-bin/packages/otelcollector-linux-amd64/bosh-helpers/lib.sh
+
+# validate configuration
+{
+    setcap 'cap_net_bind_service=+ep' $(readlink -nf $(which otelcollector))
+    exec chpst -v otelcollector --config=/var/vcap/jobs/$NAME/config/config.yaml validate
+} >>$LOG_DIR/$COMPONENT-validate.stdout.log \
+2>>$LOG_DIR/$COMPONENT-validate.stderr.log

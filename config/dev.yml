@@ -1,0 +1,5 @@
+---
+dev_name: otelcollector-binary
+blobstore:
+  provider: local
+
