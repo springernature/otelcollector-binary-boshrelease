@@ -22,7 +22,9 @@ jobs:
         lfs: true
 
     - name: Checkout LFS blobs
-      run: git lfs checkout
+      run: |
+        apt-get update && apt-get install git-lfs
+        git lfs checkout
 
     - name: Create final bosh release
       id: boshrelease
