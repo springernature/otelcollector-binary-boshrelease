@@ -33,11 +33,12 @@ jobs:
         # git lfs update --manual
         # git lfs checkout
 
-    - name: Install Bosh cli
+    - name: Install Bosh cli and other dependencies
       run: |
         mkdir -p .bin
         wget https://github.com/cloudfoundry/bosh-cli/releases/download/v${BOSH_CLI_VERSION}/bosh-cli-${BOSH_CLI_VERSION}-linux-amd64 -O .bin/bosh
         chmod a+x .bin/bosh
+        openssl sha1 .bin/bosh
         echo "$GITHUB_WORKSPACE/.bin" >> $GITHUB_PATH
 
     - name: Create final bosh release
