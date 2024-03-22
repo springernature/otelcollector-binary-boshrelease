@@ -22,15 +22,12 @@ instance_groups:
         extensions:
           health_check:
           pprof:
-            endpoint: 0.0.0.0:1777
 
         receivers:
           otlp:
             protocols:
               grpc:
-                endpoint: 0.0.0.0:4317
-              http:
-                endpoint: 0.0.0.0:4318
+                endpoint: ${env:OTELCOL_GRPC_ADDR}:${env:OTELCOL_GRPC_PORT}
 
           # Collect own metrics
           prometheus:
