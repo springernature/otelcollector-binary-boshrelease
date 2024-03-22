@@ -30,9 +30,6 @@ jobs:
       run: |
         git config user.name "$GITHUB_ACTOR"
         git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-        # git lfs install
-        # git lfs update --manual
-        # git lfs checkout
 
     - name: Install Bosh cli and other dependencies
       run: |
@@ -88,13 +85,13 @@ jobs:
         
         EOF
 
-    # - name: Create a Release
-    #   uses: softprops/action-gh-release@v2
-    #   # if: startsWith(github.ref, 'refs/tags/')
-    #   with:
-    #     token: ${{ secrets.GITHUB_TOKEN }}
-    #     tag_name: "v${{ steps.boshrelease.outputs.version }}"
-    #     files: ${{ steps.boshrelease.outputs.file }}
-    #     body_path: "${{ github.workspace }}-CHANGELOG.txt"
-    #     generate_release_notes: true
-    #     make_latest: true
+    - name: Create a Release
+      uses: softprops/action-gh-release@v2
+      # if: startsWith(github.ref, 'refs/tags/')
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag_name: "v${{ steps.boshrelease.outputs.version }}"
+        files: ${{ steps.boshrelease.outputs.file }}
+        body_path: "CHANGELOG.txt"
+        generate_release_notes: true
+        make_latest: true
