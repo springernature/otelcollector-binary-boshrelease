@@ -35,8 +35,10 @@ jobs:
 
     - name: Install Bosh cli
       run: |
-        wget https://github.com/cloudfoundry/bosh-cli/releases/download/v${BOSH_CLI_VERSION}/bosh-cli-${BOSH_CLI_VERSION}-linux-amd64 -O bosh
-        chmod a+x bosh
+        mkdir -p .bin
+        wget https://github.com/cloudfoundry/bosh-cli/releases/download/v${BOSH_CLI_VERSION}/bosh-cli-${BOSH_CLI_VERSION}-linux-amd64 -O .bin/bosh
+        chmod a+x .bin/bosh
+        echo "$GITHUB_WORKSPACE/.bin" >> $GITHUB_PATH
 
     - name: Create final bosh release
       id: boshrelease
