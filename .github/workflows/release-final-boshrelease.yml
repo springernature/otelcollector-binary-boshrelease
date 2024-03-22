@@ -8,6 +8,7 @@ on:
 
 env:
     RELEASE: "otelcollector-binary"
+    DESCRIPTION: "OpenTelemetry Collector binary Release"
     BOSH_CLI_VERSION: "7.5.5"
 
 permissions: {}
@@ -44,15 +45,16 @@ jobs:
       id: boshrelease
       run: |
         bosh sync-blobs
-        bosh create-release --final --tarball="releases/$RELEASE.tgz"
+        bosh create-release --final --tarball="$GITHUB_WORKSPACE/releases/$RELEASE.tgz"
         version=$(ls releases/$RELEASE/$RELEASE-*.yml | sed 's/.*\/.*-\(.*\)\.yml$/\1/' | sort -t. -k 1,1nr -k 2,2nr | head -1)
         echo "version=${version}" >> $GITHUB_OUTPUT
+        echo "file=$GITHUB_WORKSPACE/releases/$RELEASE.tgz" >> $GITHUB_OUTPUT
 
     - name: Uploads artifact release
       uses: actions/upload-artifact@v4
       with:
         name: boshelease
-        path: "releases/$RELEASE.tgz"
+        path: ${{ steps.boshrelease.outputs.file }}
 
     - name: Generate release notes from git commits
       run: |
@@ -60,7 +62,7 @@ jobs:
         git_changes=$(git log --pretty="%h %aI %s (%an)" $lastcommit..@ | sed 's/^/- /')
         version="${{ steps.boshrelease.outputs.version }}"
         sha1=$(openssl sha1 "${{ steps.boshrelease.outputs.file }}" | awk '{ print $2 }')
-        cat <<EOF | tee > CHANGELOG.txt
+        cat <<EOF > CHANGELOG.txt
         # $RELEASE version $version
         
         $DESCRIPTION
