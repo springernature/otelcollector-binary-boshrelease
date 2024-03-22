@@ -71,13 +71,13 @@ jobs:
         name: boshelease
         path: ${{ steps.boshrelease.outputs.file }}
 
-    # - name: Git commit final resources
-    #   if: ${{ steps.boshrelease.outputs.type == 'final' }}
-    #   run: |
-    #     git add .final_builds blobstore releases
-    #     git commit -m "Release version ${{ steps.boshrelease.outputs.version }}"
-    #     # This does not trigger another workflow with built-in `GITHUB_TOKEN` secret
-    #     git push
+    - name: Git commit final resources
+      if: ${{ steps.boshrelease.outputs.type == 'final' }}
+      run: |
+        git add .final_builds blobstore releases
+        git commit -m "Release version ${{ steps.boshrelease.outputs.version }}"
+        # This does not trigger another workflow with built-in `GITHUB_TOKEN` secret
+        git push
 
     - name: Generate release notes from git commits
       run: |
@@ -111,21 +111,13 @@ jobs:
         
         EOF
 
-
-    - name: Create final bosh release
-      if: ${{ steps.boshrelease.outputs.type == 'final' }}
-      run: |
-        cat .build/release-notes.txt
-        echo ${{ steps.boshrelease.outputs.type }}
-
-
-    # - name: Create a Release
-    #   uses: softprops/action-gh-release@v2
-    #   with:
-    #     token: ${{ secrets.GITHUB_TOKEN }}
-    #     draft: ${{ steps.boshrelease.outputs.type != 'final' }}
-    #     tag_name: "v${{ steps.boshrelease.outputs.version }}"
-    #     files: ${{ steps.boshrelease.outputs.file }}
-    #     body_path: .build/release-notes.txt
-    #     generate_release_notes: true
-    #     make_latest: ${{ steps.boshrelease.outputs.type == 'final' }}
+    - name: Create a Release
+      uses: softprops/action-gh-release@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        draft: ${{ steps.boshrelease.outputs.type != 'final' }}
+        tag_name: "v${{ steps.boshrelease.outputs.version }}"
+        files: ${{ steps.boshrelease.outputs.file }}
+        body_path: .build/release-notes.txt
+        generate_release_notes: true
+        make_latest: ${{ steps.boshrelease.outputs.type == 'final' }}
