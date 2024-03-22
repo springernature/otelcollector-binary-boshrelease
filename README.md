@@ -2,7 +2,11 @@
 
 Simple Bosh release to deploy binary OpenTelemetry collector from upstream (https://github.com/open-telemetry/opentelemetry-collector-releases/releases), allowing end users to define the full configuration file.
 
-# Creating and using a release:
+# Release process
+
+Blobs are stored in this repository as LFS objects!
+
+## Creating and testing a release
 
 In order to test and create a "non final" (dev) release, run:
 
@@ -15,8 +19,14 @@ bosh  create-release --force --tarball=/tmp/release.tgz
 bosh -e <bosh-env> upload-release /tmp/release.tgz
 ```
 
+## Releasing a final version
 
-# Release process
+Final versions are released by the GH Action workflow.
+Please commit all changes and then push an annotated tag to the repository:
+
+```
+git tag -a v1.4 -m "my version 1.4"
+```
 
 ## GitHub Credentials
 
