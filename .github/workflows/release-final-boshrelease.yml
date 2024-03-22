@@ -7,33 +7,50 @@ on:
         - "main"
 
 env:
-    RELEASE: "otelcollectory-binary"
+    RELEASE: "otelcollector-binary"
+    BOSH_CLI_VERSION: "7.5.5"
 
 permissions: {}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     steps:
-    - name: Checkout
+    - name: Checkout repository
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
         lfs: true
 
-    - name: Checkout LFS blobs
+    - name: Git config and checkout LFS blobs
       run: |
-        git lfs install
-        git lfs update --manual
-        git lfs checkout
+        git config user.name "$GITHUB_ACTOR"
+        git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+        # git lfs install
+        # git lfs update --manual
+        # git lfs checkout
+
+    - name: Install Bosh cli
+      run: |
+        wget https://github.com/cloudfoundry/bosh-cli/releases/download/v${BOSH_CLI_VERSION}/bosh-cli-${BOSH_CLI_VERSION}-linux-amd64 -O bosh
+        chmod a+x bosh
 
     - name: Create final bosh release
       id: boshrelease
-      uses: orange-cloudfoundry/bosh-release-action@v2
+      run: |
+        bosh sync-blobs
+        bosh create-release --final --tarball="release.tgz"
+        version=$(ls releases/$RELEASE/$RELEASE-*.yml | sed 's/.*\/.*-\(.*\)\.yml$/\1/' | sort -t. -k 1,1nr -k 2,2nr | head -1)
+        echo "version=${version}" >> $GITHUB_OUTPUT
+
+    - name: Uploads artifact release
+      uses: actions/upload-artifact@v4
       with:
-        target_branch: main
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: boshelease
+        path: "release.tgz"
 
     - name: Generate release notes from git commits
       run: |
@@ -41,7 +58,7 @@ jobs:
         git_changes=$(git log --pretty="%h %aI %s (%an)" $lastcommit..@ | sed 's/^/- /')
         version="${{ steps.boshrelease.outputs.version }}"
         sha1=$(sha1sum -b "${{ steps.boshrelease.outputs.file }}" | cut -d' ' -f1)
-        cat <<EOF > ${{ github.workspace }}-CHANGELOG.txt
+        cat <<EOF | tee > CHANGELOG.txt
         # $RELEASE version $version
         
         $DESCRIPTION
@@ -65,16 +82,15 @@ jobs:
               url: https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/${RELEASE}.tgz
               version: latest
         
-        
         EOF
 
-    - name: Create a Release
-      uses: softprops/action-gh-release@v2
-      # if: startsWith(github.ref, 'refs/tags/')
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        tag_name: "v${{ steps.boshrelease.outputs.version }}"
-        files: ${{ steps.boshrelease.outputs.file }}
-        body_path: "${{ github.workspace }}-CHANGELOG.txt"
-        generate_release_notes: true
-        make_latest: true
+    # - name: Create a Release
+    #   uses: softprops/action-gh-release@v2
+    #   # if: startsWith(github.ref, 'refs/tags/')
+    #   with:
+    #     token: ${{ secrets.GITHUB_TOKEN }}
+    #     tag_name: "v${{ steps.boshrelease.outputs.version }}"
+    #     files: ${{ steps.boshrelease.outputs.file }}
+    #     body_path: "${{ github.workspace }}-CHANGELOG.txt"
+    #     generate_release_notes: true
+    #     make_latest: true
