@@ -44,7 +44,6 @@ jobs:
       run: |
         mkdir -p .build
         bosh sync-blobs
-        echo ">>${GITHUB_REF#refs/tags/}"
         if [[ "${GITHUB_REF#refs/tags/}" =~ ^refs/tags.* ]];
         then
             tag="${GITHUB_REF#refs/tags/}"
@@ -114,10 +113,10 @@ jobs:
 
 
     - name: Create final bosh release
+      if: ${{ steps.boshrelease.outputs.type == 'final' }}
       run: |
         cat .build/release-notes.txt
         echo ${{ steps.boshrelease.outputs.type }}
-
 
 
     # - name: Create a Release
