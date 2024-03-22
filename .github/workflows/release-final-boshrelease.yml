@@ -44,7 +44,7 @@ jobs:
       id: boshrelease
       run: |
         bosh sync-blobs
-        bosh create-release --final --tarball="release.tgz"
+        bosh create-release --final --tarball="releases/$RELEASE.tgz"
         version=$(ls releases/$RELEASE/$RELEASE-*.yml | sed 's/.*\/.*-\(.*\)\.yml$/\1/' | sort -t. -k 1,1nr -k 2,2nr | head -1)
         echo "version=${version}" >> $GITHUB_OUTPUT
 
@@ -52,7 +52,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: boshelease
-        path: "release.tgz"
+        path: "releases/$RELEASE.tgz"
 
     - name: Generate release notes from git commits
       run: |
