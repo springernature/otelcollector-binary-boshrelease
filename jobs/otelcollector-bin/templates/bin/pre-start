@@ -14,7 +14,8 @@ source /var/vcap/jobs/otelcollector-bin/packages/otelcollector-linux-amd64/bosh-
 
 # validate configuration
 {
+    echo "> Starting validation /var/vcap/jobs/$NAME/config/config.yaml"
     setcap 'cap_net_bind_service=+ep' $(readlink -nf $(which otelcollector))
-    exec chpst -v otelcollector --config=/var/vcap/jobs/$NAME/config/config.yaml validate
-} >>$LOG_DIR/$COMPONENT-validate.stdout.log \
-2>>$LOG_DIR/$COMPONENT-validate.stderr.log
+    chpst -v otelcollector --config=/var/vcap/jobs/$NAME/config/config.yaml validate
+    echo "> Done"
+} >$LOG_DIR/$COMPONENT-validate.log 2>&1

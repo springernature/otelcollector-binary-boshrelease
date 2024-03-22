@@ -3,5 +3,52 @@ conf = p('otelcollector-bin.config')
 unless conf.respond_to?(:keys)
     conf = YAML::load(conf)
 end
+
+enabled = p('otelcollector-bin.prom-jobs.enabled')
+if enabled
+    unless conf.key?("receivers")
+        raise 'Provided collector config has not receivers key'
+    end
+    scrape_configs = []
+    glob_pattern = p('otelcollector-bin.prom-jobs.glob-pattern')
+    Dir.glob(glob_pattern) do |file|
+        next unless File.file?(file)
+        prom_fecth = YAML::load(file)
+        scrape_config = {}
+        scrape_config['job_name'] = 
+        scrape_config['metrics_path'] = prom_fecth.fetch('path', '/metrics')
+        scrape_config['scheme'] = prom_fecth.fecth('scheme', 'http')
+        scrape_config['scrape_interval'] = prom_fecth.fecth('scrape_interval', '60s')
+        scrape_config['static_configs'] = [{"targets" => ["0.0.0.0:#{prom_fecth['port']}"], "labels" => prom_fecth.fecth('labels', [])}]
+        scrape_configs.append(scrape_config)
+    end
+    if (scrape_configs.length > 0)
+        prom_receiver = "prometheus/" + p('otelcollector-bin.prom-jobs.receiver-name', "boshjobs")
+        conf['receivers'][prom_receiver] = {
+            "config" => {
+                "scrape_configs" => scrape_configs
+            }
+        }
+    end
+end
+
+# -port: Required - port on localhost where metrics endpoint is available
+# source_id: Optional - the source ID to set on scraped metrics (defaults to infra_job_name) 
+# instance_id: Optional - the instance ID to set on scraped metrics (defaults to "")
+# -scheme: Optional - the scheme to use when scraping the target metrics endpoint. Either "http" or "https" (defaults to "http")
+# server_name: Required for HTTPS targets. Prom scraper uses this to set the server name for cert verification despite using localhost to resolve the request.
+# -path: Optional - the path to the metrics endpoint (defaults to "/metrics")
+# headers: Optional - a map of headers to add to the scrape request
+# -labels: Optional - a map of labels that will be added to all metrics
+# -scrape_interval: Optional - how often to scrape the metrics endpoint. Non-positive numbers cause endpoint to not be scraped.
+
+# # NOTE: if you would like to override the use of certificates
+# # ensure that you include a blob that includes your cert and key files
+# # in the prom scraper job's additional_volumes property so that
+# # it will not be blocked from viewing these files by bpm.
+# ca_path: Optional - path to ca to override the default scraping ca.
+# client_key_path: Optional - path to a client key to provide to override default mutual tls client key
+# client_cert_path: Optional - path to a client cert to provide to override default mutual tls client cert
+
 YAML::dump(conf)
 %>

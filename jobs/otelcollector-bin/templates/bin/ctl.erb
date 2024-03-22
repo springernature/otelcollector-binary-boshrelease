@@ -19,12 +19,12 @@ case ${1:-help} in
     (
         {
             setcap 'cap_net_bind_service=+ep' $(readlink -nf $(which otelcollector))
-            exec chpst -v otelcollector --config=/var/vcap/jobs/$NAME/config/config.yaml
+            exec chpst -v otelcollector --config=/var/vcap/jobs/$NAME/config/config.yaml <% if_p("otelcollector-bin.feature-gates") do |gates| %><%= (gates.length > 0) ? "--feature-gates=#{gates.join(',')}" : '' %><% end %>
         } >>$LOG_DIR/$COMPONENT.stdout.log \
         2>>$LOG_DIR/$COMPONENT.stderr.log
     ) &
     echo $! > $PIDFILE
-    echo "$(<${PIDFILE}). Done"
+    echo_log "$(<${PIDFILE}). Done"
     ;;
   stop)
     echo_log "Stopping $COMPONENT: $(<${PIDFILE}). "

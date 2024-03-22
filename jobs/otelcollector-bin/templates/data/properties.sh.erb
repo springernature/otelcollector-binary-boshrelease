@@ -25,3 +25,7 @@ export INSTANCE_IP="<%= spec.ip %>"
 export <%= key %>="<%= value %>"
 <% end %>
 <% end %>
+
+export OTELCOL_GRPC_PORT="<%= p('ingress.grpc.port', '4317') %>"
+export OTELCOL_GRPC_ADDR="<%= p('ingress.grpc.address', '0.0.0.0') %>"
+export OTELCOL_HEALTHCHECK="<%= p('otelcollector-bin.healthcheck-endpoint', '127.0.0.1:13133') %>"
