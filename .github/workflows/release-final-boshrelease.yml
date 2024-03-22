@@ -14,7 +14,7 @@ env:
 permissions: {}
 
 jobs:
-  build:
+  build-final-release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -30,6 +30,7 @@ jobs:
       run: |
         git config user.name "$GITHUB_ACTOR"
         git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+        git lfs checkout
 
     - name: Install Bosh cli and other dependencies
       run: |
@@ -41,11 +42,28 @@ jobs:
     - name: Create final bosh release
       id: boshrelease
       run: |
+        mkdir -p .build
         bosh sync-blobs
-        bosh create-release --final --tarball="$GITHUB_WORKSPACE/releases/$RELEASE.tgz"
+        if [[ "${GITHUB_REF#refs/tags/}" =~ ^refs/tags.* ]];
+        then
+            # the trigger does not come from a tag. Not a final version
+            bosh create-release --tarball="$GITHUB_WORKSPACE/.build/$RELEASE.tgz"
+            echo "type=dev" >> $GITHUB_OUTPUT
+        else
+            tag="${GITHUB_REF#refs/tags/}"
+            if [[ "${tag#v}" =~ ^([0-9]+\.){0,2}(\*|[0-9]+)$ ]]
+            then
+              # Tag is a version, create it with this vesion
+              bosh create-release --final --tarball="$GITHUB_WORKSPACE/.build/$RELEASE.tgz" --version "${tag#v}"
+            else
+              # Tag is not a version, major version
+              bosh create-release --final --tarball="$GITHUB_WORKSPACE/.build/$RELEASE.tgz"
+            fi
+            echo "type=final" >> $GITHUB_OUTPUT
+        fi
         version=$(ls releases/$RELEASE/$RELEASE-*.yml | sed 's/.*\/.*-\(.*\)\.yml$/\1/' | sort -t. -k 1,1nr -k 2,2nr | head -1)
         echo "version=${version}" >> $GITHUB_OUTPUT
-        echo "file=$GITHUB_WORKSPACE/releases/$RELEASE.tgz" >> $GITHUB_OUTPUT
+        echo "file=$GITHUB_WORKSPACE/.build/$RELEASE.tgz" >> $GITHUB_OUTPUT
 
     - name: Uploads artifact release
       uses: actions/upload-artifact@v4
@@ -53,13 +71,21 @@ jobs:
         name: boshelease
         path: ${{ steps.boshrelease.outputs.file }}
 
+    - name: Git commit final resources
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        git add .final_builds blobstore releases
+        git commit -m "Release version ${{ steps.boshrelease.outputs.version }}"
+        # This does not trigger another workflow with built-in `GITHUB_TOKEN` secret
+        git push
+
     - name: Generate release notes from git commits
       run: |
         lastcommit=$(git log --no-walk --tags --pretty="%h %s" | awk 'NR==1{ print $1 }')
         git_changes=$(git log --pretty="%h %aI %s (%an)" $lastcommit..@ | sed 's/^/- /')
         version="${{ steps.boshrelease.outputs.version }}"
         sha1=$(openssl sha1 "${{ steps.boshrelease.outputs.file }}" | awk '{ print $2 }')
-        cat <<EOF > CHANGELOG.txt
+        cat <<EOF > .build/release-notes.txt
         # $RELEASE version $version
         
         $DESCRIPTION
@@ -90,8 +116,9 @@ jobs:
       # if: startsWith(github.ref, 'refs/tags/')
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        tag_name: "v${{ steps.boshrelease.outputs.version }}"
+        draft: ${{ steps.boshrelease.outputs.type != 'final' }}
+        tag_name: "V${{ steps.boshrelease.outputs.version }}"
         files: ${{ steps.boshrelease.outputs.file }}
-        body_path: "CHANGELOG.txt"
+        body_path: .build/release-notes.txt
         generate_release_notes: true
         make_latest: true

@@ -8,6 +8,7 @@ releases/**/*.tgz
 .DS_Store
 .idea
 .bin
+.build
 *.swp
 *~
 *#
