@@ -112,6 +112,14 @@ jobs:
         
         EOF
 
+
+    - name: Create final bosh release
+      run: |
+        cat .build/release-notes.txt
+        echo ${{ steps.boshrelease.outputs.type }}
+
+
+
     # - name: Create a Release
     #   uses: softprops/action-gh-release@v2
     #   with:
