@@ -6,7 +6,7 @@ OTELCOL_VERSION=$(ls -vr otelcollector-linux-amd64/otelcol-contrib_*_linux_amd64
 
 echo "Extracting otel collector version ${OTELCOL_VERSION} ... "
 mkdir -p ${BOSH_INSTALL_TARGET}/bin
-tar xzf "otelcollector-linux-amd64/mtail_${MTAIL_VERSION}_linux_amd64.tar.gz" -C ${BOSH_INSTALL_TARGET}
+tar xzf "otelcollector-linux-amd64/otelcol-contrib_${OTELCOL_VERSION}_linux_amd64.tar.gz" -C ${BOSH_INSTALL_TARGET}
 mv ${BOSH_INSTALL_TARGET}/otelcol-contrib ${BOSH_INSTALL_TARGET}/bin/otelcollector
 chmod a+x ${BOSH_INSTALL_TARGET}/bin/*
 
