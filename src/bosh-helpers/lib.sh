@@ -79,7 +79,7 @@ function wait_pid {
 
   if [ -e /proc/$pid ]; then
     if [ "$try_kill" = "1" ]; then
-      echon_log "Killing $pidfile: $pid "
+      echo_log "Killing $pidfile: $pid "
       kill $pid
     fi
     while [ -e /proc/$pid ]; do
