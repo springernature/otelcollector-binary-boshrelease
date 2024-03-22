@@ -117,8 +117,8 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         draft: ${{ steps.boshrelease.outputs.type != 'final' }}
-        tag_name: "V${{ steps.boshrelease.outputs.version }}"
+        tag_name: "v${{ steps.boshrelease.outputs.version }}"
         files: ${{ steps.boshrelease.outputs.file }}
         body_path: .build/release-notes.txt
         generate_release_notes: true
-        make_latest: true
+        make_latest: ${{ steps.boshrelease.outputs.type == 'final' }}
