@@ -38,7 +38,6 @@ jobs:
         mkdir -p .bin
         wget https://github.com/cloudfoundry/bosh-cli/releases/download/v${BOSH_CLI_VERSION}/bosh-cli-${BOSH_CLI_VERSION}-linux-amd64 -O .bin/bosh
         chmod a+x .bin/bosh
-        openssl sha1 .bin/bosh
         echo "$GITHUB_WORKSPACE/.bin" >> $GITHUB_PATH
 
     - name: Create final bosh release
@@ -60,7 +59,7 @@ jobs:
         lastcommit=$(git log --no-walk --tags --pretty="%h %s" | awk 'NR==1{ print $1 }')
         git_changes=$(git log --pretty="%h %aI %s (%an)" $lastcommit..@ | sed 's/^/- /')
         version="${{ steps.boshrelease.outputs.version }}"
-        sha1=$(sha1sum -b "${{ steps.boshrelease.outputs.file }}" | cut -d' ' -f1)
+        sha1=$(openssl sha1 "${{ steps.boshrelease.outputs.file }}" | awk '{ print $2 }')
         cat <<EOF | tee > CHANGELOG.txt
         # $RELEASE version $version
         
