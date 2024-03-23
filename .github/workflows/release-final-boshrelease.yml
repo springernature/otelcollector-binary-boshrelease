@@ -5,6 +5,8 @@ on:
     push:
       branches:
         - "main"
+      tags:
+        - '*'
 
 env:
     RELEASE: "otelcollector-binary"
@@ -39,7 +41,7 @@ jobs:
         chmod a+x .bin/bosh
         echo "$GITHUB_WORKSPACE/.bin" >> $GITHUB_PATH
 
-    - name: Create final bosh release
+    - name: Create Bosh release
       id: boshrelease
       run: |
         mkdir -p .build
