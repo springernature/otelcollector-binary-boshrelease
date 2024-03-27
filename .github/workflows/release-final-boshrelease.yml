@@ -16,7 +16,7 @@ env:
 permissions: {}
 
 jobs:
-  build-final-release:
+  build-bosh-release:
     runs-on: ubuntu-latest
     permissions:
       contents: write

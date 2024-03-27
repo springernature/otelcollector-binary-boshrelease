@@ -26,6 +26,7 @@ Please commit all changes and then push an annotated tag to the repository:
 
 ```
 git tag -a v1.4 -m "my version 1.4"
+git push --tags
 ```
 
 ## GitHub Credentials
