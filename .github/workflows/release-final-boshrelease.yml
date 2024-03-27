@@ -117,7 +117,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        draft: ${{ steps.boshrelease.outputs.type != 'final' }}
+        prerelease: ${{ steps.boshrelease.outputs.type != 'final' }}
         tag_name: "v${{ steps.boshrelease.outputs.version }}"
         files: ${{ steps.boshrelease.outputs.file }}
         body_path: .build/release-notes.txt
