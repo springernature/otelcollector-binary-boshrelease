@@ -85,7 +85,7 @@ jobs:
         message=$(git tag -l --format='%(contents)' "${GITHUB_REF_NAME}")
         git commit -m "${message}"
         # This does not trigger another workflow with built-in `GITHUB_TOKEN` secret
-        git push
+        git push origin HEAD:${{ github.ref_name }}
 
     - name: Generate release notes from git commits
       run: |
