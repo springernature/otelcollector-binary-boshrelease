@@ -18,48 +18,49 @@ instance_groups:
   - name: otelcollector-bin
     release: otelcollector-binary
     properties:
-      otelcollector-bin.config: |
-        extensions:
-          health_check:
-          pprof:
+      otelcollector-bin:
+        config: |
+          extensions:
+            health_check:
 
-        receivers:
-          otlp:
-            protocols:
-              grpc:
-                endpoint: ${env:OTELCOL_GRPC_ADDR}:${env:OTELCOL_GRPC_PORT}
+          receivers:
+            otlp:
+              protocols:
+                grpc:
+                  endpoint: ${env:OTELCOL_GRPC_ADDR}:${env:OTELCOL_GRPC_PORT}
 
-          # Collect own metrics
-          prometheus:
-            config:
-              scrape_configs:
-              - job_name: 'otel-collector'
-                scrape_interval: 10s
-                static_configs:
-                - targets: ['0.0.0.0:8888']
+            # Collect own metrics
+            prometheus:
+              config:
+                scrape_configs:
+                - job_name: 'otel-collector'
+                  scrape_interval: 30s
+                  static_configs:
+                  - targets: ['127.0.0.1:8881']
 
-        processors:
-          batch:
+          processors:
+            batch:
 
-        exporters:
-          logging:
-            verbosity: detailed
+          exporters:
+            debug:
+              verbosity: basic
 
-        service:
-          extensions: [health_check, pprof]
-          pipelines:
-            traces:
-              receivers: [otlp]
-              processors: [batch]
-              exporters: [logging]
+          service:
+            logs:
+              level: INFO
             metrics:
-              receivers: [otlp, prometheus]
-              processors: [batch]
-              exporters: [logging]
+              level: basic
+              address: 127.0.0.1:8881
+            extensions: [health_check, pprof]
+            pipelines:
+              metrics:
+                receivers: [otlp, prometheus]
+                processors: [batch]
+                exporters: [debug]
 
 stemcells:
 - alias: default
-  name: bosh-google-kvm-ubuntu-xenial-go_agent
+  name: bosh-google-kvm-ubuntu-jammy-go_agent
   version: latest
 
 update:
