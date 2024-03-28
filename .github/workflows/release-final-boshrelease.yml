@@ -71,7 +71,7 @@ jobs:
         version=$(ls releases/$RELEASE/*.yml | sed 's/.*\/.*-\(.*\)\.yml$/\1/' | sort -t. -k 1,1nr -k 2,2nr | head -1)
         echo "version=${version}" | tee -a $GITHUB_OUTPUT
         echo "file=$GITHUB_WORKSPACE/.build/$RELEASE.tgz" | tee -a $GITHUB_OUTPUT
-        echo "release=$RELEASE"
+        echo "release=$RELEASE" | tee -a $GITHUB_OUTPUT
 
     - name: Uploads artifact release
       uses: actions/upload-artifact@v4
