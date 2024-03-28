@@ -48,24 +48,24 @@ jobs:
         bosh sync-blobs
         echo "GITHUB_REF=${GITHUB_REF}"
         echo "GITHUB_REF_NAME=${GITHUB_REF_NAME}"
-        if [[ "${GITHUB_REF#refs/tags/}" =~ ^refs/tags.* ]];
+        if [[ "${GITHUB_REF#refs/tags/}" =~ ^refs/.* ]]
         then
-            tag="${GITHUB_REF#refs/tags/}"
-            if [[ "${tag#v}" =~ ^([0-9]+\.){0,2}(\*|[0-9]+)$ ]]
-            then
-              # Tag is a version, create it with this vesion
-              echo "Using provided version from the tag (tag=$tag)"
-              bosh create-release --final --tarball="$GITHUB_WORKSPACE/.build/$RELEASE.tgz" --version "${tag#v}"
-            else
-              # Tag is not a version, bosh will increase the minor version automatically
-              echo "Tag does not match version (tag=$tag). Let bosh to calculate the next one"
-              bosh create-release --final --tarball="$GITHUB_WORKSPACE/.build/$RELEASE.tgz"
-            fi
-            echo "type=final" | tee -a >> $GITHUB_OUTPUT
+          # the trigger does not come from a tag. Not a final version
+          bosh create-release --tarball="$GITHUB_WORKSPACE/.build/$RELEASE.tgz"
+          echo "type=dev" | tee -a $GITHUB_OUTPUT
         else
-            # the trigger does not come from a tag. Not a final version
-            bosh create-release --tarball="$GITHUB_WORKSPACE/.build/$RELEASE.tgz"
-            echo "type=dev" | tee -a $GITHUB_OUTPUT
+          tag="${GITHUB_REF_NAME}"
+          if [[ "${tag#v}" =~ ^([0-9]+\.){0,2}(\*|[0-9]+)$ ]]
+          then
+            # Tag is a version, create it with this vesion
+            echo "Using provided version from the tag (tag=$tag)"
+            bosh create-release --final --tarball="$GITHUB_WORKSPACE/.build/$RELEASE.tgz" --version "${tag#v}"
+          else
+            # Tag is not a version, bosh will increase the minor version automatically
+            echo "Tag does not match version (tag=$tag). Let bosh to calculate the next one"
+            bosh create-release --final --tarball="$GITHUB_WORKSPACE/.build/$RELEASE.tgz"
+          fi
+          echo "type=final" | tee -a >> $GITHUB_OUTPUT
         fi
         version=$(ls releases/$RELEASE/$RELEASE-*.yml | sed 's/.*\/.*-\(.*\)\.yml$/\1/' | sort -t. -k 1,1nr -k 2,2nr | head -1)
         echo "version=${version}" | tee -a $GITHUB_OUTPUT
