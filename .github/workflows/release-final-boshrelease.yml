@@ -46,6 +46,8 @@ jobs:
       run: |
         mkdir -p .build
         bosh sync-blobs
+        echo "GITHUB_REF=${GITHUB_REF}"
+        echo "GITHUB_REF_NAME=${GITHUB_REF_NAME}"
         if [[ "${GITHUB_REF#refs/tags/}" =~ ^refs/tags.* ]];
         then
             tag="${GITHUB_REF#refs/tags/}"
