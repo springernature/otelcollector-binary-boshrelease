@@ -27,6 +27,7 @@ jobs:
       with:
         fetch-depth: 0
         lfs: true
+        ref: ${{ github.ref_name }}
 
     - name: Git config and checkout LFS blobs
       run: |
@@ -81,7 +82,8 @@ jobs:
       if: ${{ steps.boshrelease.outputs.type == 'final' }}
       run: |
         git add .final_builds blobstore releases
-        git commit -m "Release version ${{ steps.boshrelease.outputs.version }}"
+        message=$(git tag -l --format='%(contents)' "${GITHUB_REF_NAME}")
+        git commit -m "${message}"
         # This does not trigger another workflow with built-in `GITHUB_TOKEN` secret
         git push
 
