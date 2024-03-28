@@ -64,6 +64,7 @@ properties:
       extensions:
         health_check:
           endpoint: ${env:OTELCOL_HEALTHCHECK}
+
       receivers:
         otlp:
           protocols:
@@ -77,8 +78,7 @@ properties:
             - job_name: 'otel-collector'
               scrape_interval: 30s
               static_configs:
-              - targets: ['0.0.0.0:8888']
-                labels:
+              - targets: ['127.0.0.1:8881']
 
         hostmetrics:
           collection_interval: 60s
@@ -98,14 +98,21 @@ properties:
 
       exporters:
         debug:
-          verbosity: detailed
-          sampling_initial: 5
-          sampling_thereafter: 200
+          verbosity: basic
 
       service:
         extensions: [health_check]
+        logs:
+          level: INFO
+        metrics:
+          level: basic
+          address: 127.0.0.1:8881
         pipelines:
           traces:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [debug]
+          logs:
             receivers: [otlp]
             processors: [batch]
             exporters: [debug]
@@ -113,4 +120,3 @@ properties:
             receivers: [otlp, hostmetrics, prometheus]
             processors: [batch]
             exporters: [debug]
-
