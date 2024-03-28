@@ -84,8 +84,10 @@ jobs:
         git add .final_builds blobstore releases
         message=$(git tag -l --format='%(contents)' "${GITHUB_REF_NAME}")
         git commit -m "${message}"
+        remote=main
+        [ "${{ github.ref_type }}" == "branch" ] && remote=${{ github.ref_name }}
         # This does not trigger another workflow with built-in `GITHUB_TOKEN` secret
-        git push origin HEAD:${{ github.ref_name }}
+        git push origin HEAD:${remote}
 
     - name: Generate release notes from git commits
       run: |
