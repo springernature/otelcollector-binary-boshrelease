@@ -1,8 +1,16 @@
 # otelcollector-binary-boshrelease
 
-Simple Bosh release to deploy binary OpenTelemetry collector from upstream (https://github.com/open-telemetry/opentelemetry-collector-releases/releases), allowing end users to define the full configuration file.
+Simple Bosh release to deploy binary OpenTelemetry collector from [upstream](https://github.com/open-telemetry/opentelemetry-collector-releases/releases), allowing end users to define the full configuration file.
+
+## Usage
+
+Usage. See the `manifest` directory for an example of how to deploy it. Check the [Releases](https://github.com/springernature/otelcollector-binary-boshrelease/releases) for the changelog and installation references.
+
+Normally this release will be included as a Bosh job in the [runtime-config](https://bosh.io/docs/runtime-config/) to get it deployed as an agent in all VMs (like *node-exporter*).
 
 ## Configuration
+
+Parameters (see `jobs/otelcollector-bin/spec`):
 
 ```
   enabled:
@@ -99,8 +107,17 @@ Simple Bosh release to deploy binary OpenTelemetry collector from upstream (http
             receivers: [otlp, hostmetrics, prometheus]
             processors: [batch]
             exporters: [debug]
-
 ```
+
+# Updating the collector binary
+
+To update the collector deployed by this release:
+
+1. In `packages/otelcollector-linux-amd64/spec` file, update the version of the tar file under `files` section and also the commented URL.
+2. Run `./update-blobs.sh`. This will read the commented URL from the previous file, and create the file specified in `files` section. This file will become a *blob* which will be uploaded/synced to the `blobstore`.
+3. Upload the release to a Bosh director and test it (see below).
+4. Push all blob and package resources to the repository. Check if the pipeline works and check if the generated package (bosh release) works.
+5. Create a GH Release which includes a Bosh final Release artifact by triggering the pipeline with an annotated tag (see below).
 
 # Release process
 
@@ -150,3 +167,11 @@ From GitHub's [docs](https://docs.github.com/en/actions/using-workflows/triggeri
 You will want to configure a GitHub Actions secret with a
 [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
 if you want GitHub Actions CI checks to run on Release Please PRs.
+
+# License
+
+MIT License
+
+Copyright (c) 2024 Springer Nature Observabilty Engineering
+
+Jose Riguera
