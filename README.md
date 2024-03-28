@@ -44,9 +44,6 @@ Simple Bosh release to deploy binary OpenTelemetry collector from upstream (http
     default: {}
   otelcollector-bin.config:
     default: |
-      extensions:
-        health_check:
-          endpoint: ${env:OTELCOL_HEALTHCHECK}
       receivers:
         otlp:
           protocols:
@@ -60,8 +57,7 @@ Simple Bosh release to deploy binary OpenTelemetry collector from upstream (http
             - job_name: 'otel-collector'
               scrape_interval: 30s
               static_configs:
-              - targets: ['0.0.0.0:8888']
-                labels:
+              - targets: ['127.0.0.1:8881']
 
         hostmetrics:
           collection_interval: 60s
@@ -81,14 +77,21 @@ Simple Bosh release to deploy binary OpenTelemetry collector from upstream (http
 
       exporters:
         debug:
-          verbosity: detailed
-          sampling_initial: 5
-          sampling_thereafter: 200
+          verbosity: basic
 
       service:
-        extensions: [health_check]
+        extensions: []
+        logs:
+          level: INFO
+        metrics:
+          level: basic
+          address: 127.0.0.1:8881
         pipelines:
           traces:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [debug]
+          logs:
             receivers: [otlp]
             processors: [batch]
             exporters: [debug]
@@ -96,32 +99,36 @@ Simple Bosh release to deploy binary OpenTelemetry collector from upstream (http
             receivers: [otlp, hostmetrics, prometheus]
             processors: [batch]
             exporters: [debug]
+
 ```
 
 # Release process
 
-Blobs are stored in this repository as LFS objects!
+Blobs are stored in this repository as LFS objects!. Commit all blobs to `blobstore`.
 
-## Creating and testing a release
+## Creating and testing a non-final release
 
 In order to test and create a "non final" (dev) release, run:
 
 ```
-# Update or sync blobs
+# Download, update or sync blobs
 ./update-blobs.sh
 # Create a dev release
 bosh  create-release --force --tarball=/tmp/release.tgz
-# Upload release to bosh director
+# Upload dev release to bosh director (for testing)
 bosh -e <bosh-env> upload-release /tmp/release.tgz
 ```
 
 ## Releasing a final version
 
 Final versions are released by the GH Action workflow.
-Please commit all changes and then push an annotated tag to the repository:
+Please commit all changes (and blobs) and then push an annotated tag to the repository.
+
+> [!WARNING]  
+> Do not commit `releases` and `.final_builds` resources created when doing a final release manually. Those are commit by the pipeline
 
 ```
-git tag -a v1.4 -m "my version 1.4"
+git tag -a v<version> -m "<comment used to commit the resources created by bosh>"
 git push --tags
 ```
 
