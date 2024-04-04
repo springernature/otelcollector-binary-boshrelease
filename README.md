@@ -47,6 +47,10 @@ Parameters (see `jobs/otelcollector-bin/spec`):
   otelcollector-bin.healthcheck-endpoint:
     description: "Health-check endpoint, exposed as env var OTELCOL_HEALTHCHECK for configuration"
     default: "127.0.0.1:13133"
+  otelcollector-bin.setcap:
+    description: List of capabilities to pass ot setcap command. See setcap manual (https://www.man7.org/linux/man-pages/man8/setcap.8.html)
+    default:
+    - cap_net_bind_service=+ep
   otelcollector-bin.env:
     description: Key/value hash of environment variables.
     default: {}
