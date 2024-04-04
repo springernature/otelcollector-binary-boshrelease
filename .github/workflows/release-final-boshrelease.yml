@@ -110,7 +110,7 @@ jobs:
             releases:
             - name: $RELEASE
               url: https://github.com/${GITHUB_REPOSITORY}/releases/download/v${version}/${RELEASE}.tgz
-              version: $version
+              version: '$version'
               sha1: $sha1
         
         or to always point to latest release:
