@@ -18,7 +18,11 @@ case ${1:-help} in
     pid_guard $PIDFILE $COMPONENT
     (
         {
-            setcap 'cap_net_bind_service=+ep' $(readlink -nf $(which otelcollector))
+            <% if_p("otelcollector-bin.setcap") do |caps| %>
+            <% caps.each do |cap| %>
+            setcap '<%= cap %>' $(readlink -nf $(which otelcollector))
+            <% end %>
+            <% end %>
             exec chpst -v otelcollector --config=/var/vcap/jobs/$NAME/config/config.yaml <% if_p("otelcollector-bin.feature-gates") do |gates| %><%= (gates.length > 0) ? "--feature-gates=#{gates.join(',')}" : '' %><% end %>
         } >>$LOG_DIR/$COMPONENT.stdout.log \
         2>>$LOG_DIR/$COMPONENT.stderr.log
