@@ -6,3 +6,7 @@ otelcollector-linux-amd64/otelcol-contrib_0.97.0_linux_amd64.tar.gz:
   size: 65821693
   object_id: 014d7e24-d667-40c9-765b-b6c52f609b40
   sha: sha256:2e899cbf4aae7594437aafba90103820c05a834695ad45000aa8058924ffe8cc
+otelcollector-linux-amd64/otelcol-contrib_0.100.0_linux_amd64.tar.gz:
+  size: 67345801
+  object_id: 6911a1ec-ff8c-4fb3-53ac-d59e2f04faee
+  sha: sha256:58474c2ae87fbc41a8acf20bfd3a4b82f2b13a26f767090062e42a6a857bfb89
