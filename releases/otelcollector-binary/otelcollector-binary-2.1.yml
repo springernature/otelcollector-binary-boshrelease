@@ -1,0 +1,26 @@
+name: otelcollector-binary
+version: "2.1"
+commit_hash: 08a2d04
+uncommitted_changes: false
+jobs:
+- name: otelcollector-bin
+  version: 642eee2ed7c15c60d99eb5014790a1c07f24ad84d8e5b01fcd57b2011473801a
+  fingerprint: 642eee2ed7c15c60d99eb5014790a1c07f24ad84d8e5b01fcd57b2011473801a
+  sha1: sha256:b0b649d1da5214a7a7e114878bc59ee4e94ce77630a38a96e5e938a27647f1c2
+  packages:
+  - otelcollector-linux-amd64
+packages:
+- name: bosh-helpers
+  version: 04875dd73de3bae96a5a2f1eb13b3eba54e997e449afdf2c83adc51153bab3e0
+  fingerprint: 04875dd73de3bae96a5a2f1eb13b3eba54e997e449afdf2c83adc51153bab3e0
+  sha1: sha256:9d470e440e6afa9030aab2dba85b95ce0f4880241967cbdb878e3a83b8cd995e
+  dependencies: []
+- name: otelcollector-linux-amd64
+  version: f6d16e86889e84eee86f788d6c6e9b2b8d0f29b8eb3f616316064c33b78634ef
+  fingerprint: f6d16e86889e84eee86f788d6c6e9b2b8d0f29b8eb3f616316064c33b78634ef
+  sha1: sha256:a8973529ea6e404e86ecbdd0af09286f0d711df4692f9e991ec89aecbeca626b
+  dependencies: []
+license:
+  version: 54ff7ca67def519276a064d4f3e2622f06112df8bd1837350f26daf2a5b03200
+  fingerprint: 54ff7ca67def519276a064d4f3e2622f06112df8bd1837350f26daf2a5b03200
+  sha1: sha256:8de8dce6750b0d000b7362f41bf665c181b2deb7552250f8e948682d731fe896
