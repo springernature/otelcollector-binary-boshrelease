@@ -117,7 +117,7 @@ Parameters (see `jobs/otelcollector-bin/spec`):
 
 To update the collector deployed by this release:
 
-1. In `packages/otelcollector-linux-amd64/spec` file, update the version of the tar file under `files` section and also the commented URL.
+1. In `packages/otelcollector-linux-amd64/spec` file, update the version of the tar file under `files` section and also the commented URL. You can use files with 2 extensions: `.bin` and `.tgz`.
 2. Run `./update-blobs.sh`. This will read the commented URL from the previous file, and create the file specified in `files` section. This file will become a *blob* which will be uploaded/synced to the `blobstore`.
 3. Upload the release to a Bosh director and test it (see below).
 4. Push all blob and package resources to the repository. Check if the pipeline works and check if the generated package (bosh release) works.

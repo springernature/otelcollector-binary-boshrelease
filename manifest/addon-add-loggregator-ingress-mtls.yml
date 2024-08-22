@@ -1,5 +1,5 @@
 - type: replace
-  path: /addons?/name=otelcollector-binary/jobs/name=otelcollector-bin/properties/ingress/grpc/tls?
+  path: /addons?/name=otel-collector-agent/jobs/name=otelcollector-bin/properties/ingress/grpc/tls?
   value:
     ca_cert: ((otel_collector_tls.ca))
     cert: ((otel_collector_tls.certificate))
