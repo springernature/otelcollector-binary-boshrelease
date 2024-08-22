@@ -1,0 +1,21 @@
+- type: replace
+  path: /addons?/name=otelcollector-binary/jobs/name=otelcollector-bin/properties/ingress/grpc/tls?
+  value:
+    ca_cert: ((otel_collector_tls.ca))
+    cert: ((otel_collector_tls.certificate))
+    key: ((otel_collector_tls.private_key))
+
+- type: replace
+  path: /variables/name=otel_collector_tls?
+  value:
+    name: otel_collector_tls
+    options:
+      alternative_names:
+      - otel-collector
+      ca: loggregator_ca
+      common_name: otel-collector
+      extended_key_usage:
+      - client_auth
+      - server_auth
+    type: certificate
+    update_mode: converge

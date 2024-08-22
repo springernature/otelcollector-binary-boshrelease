@@ -24,6 +24,9 @@ properties:
   enabled:
     description: "Enable OTel Collector"
     default: true
+  ingress.enabled:
+    description: "Enable Loggregator integration to receive OTEL telemetry in ingress port"
+    default: false
   ingress.grpc.address:
     description: "Address to listen on to receive OTLP over gRPC, exposed as env var OTELCOL_GRPC_ADDR for configuration"
     default: 0.0.0.0
