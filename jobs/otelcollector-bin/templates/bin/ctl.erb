@@ -23,7 +23,7 @@ case ${1:-help} in
             setcap '<%= cap %>' $(readlink -nf $(which otelcollector))
             <% end %>
             <% end %>
-            <% if p("ingress.enabled") == false || p("ingress.enabled") !~ (/(true|t|yes|y|1)$/i) %>
+            <% if p("ingress.enabled") != true %>
             rm -f /var/vcap/jobs/$NAME/config/ingress_port.yml
             <% end %>
             exec chpst -v otelcollector --config=/var/vcap/jobs/$NAME/config/config.yaml <% if_p("otelcollector-bin.feature-gates") do |gates| %><%= (gates.length > 0) ? "--feature-gates=#{gates.join(',')}" : '' %><% end %>

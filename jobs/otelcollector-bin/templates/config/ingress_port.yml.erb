@@ -1,4 +1,4 @@
-<% if p("ingress.enabled") == true || p("ingress.enabled") =~ (/(true|t|yes|y|1)$/i) %>
+<% if p("ingress.enabled") == true %>
 ---
 ingress: <%= p('ingress.grpc.port') %>
 protocol: <%= p('ingress.loggr-protocol', 'otelcol') %>
