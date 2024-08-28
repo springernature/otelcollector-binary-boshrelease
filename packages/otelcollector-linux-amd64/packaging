@@ -2,8 +2,8 @@
 set -e -x
 
 BOSH_PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
-OTELCOL_VERSION=$(ls -vr otelcollector-linux-amd64/otelcol-contrib_*_linux_amd64* | sed 's/.*\/otelcol-contrib_\(.*\)_linux_amd64.*$/\1/' | head -1)
-FILE=$(ls -vr  "otelcollector-linux-amd64/otelcol-contrib_${OTELCOL_VERSION}_linux_amd64"* | head -1)
+OTELCOL_VERSION=$(ls -vr otelcollector-linux-amd64/otelcol-*_linux_amd64* | sed 's/.*\/otelcol-\(.*\)_\(.*\)_linux_amd64.*$/\2/' | head -1)
+FILE=$(ls -vr otelcollector-linux-amd64/otelcol-*_${OTELCOL_VERSION}_linux_amd64* | head -1)
 
 mkdir -p ${BOSH_INSTALL_TARGET}/bin
 case "${FILE##*.}" in
@@ -14,7 +14,7 @@ case "${FILE##*.}" in
     tgz)
         echo "Extracting otel collector version ${OTELCOL_VERSION} ... "
         tar xzf ${FILE} -C ${BOSH_INSTALL_TARGET}
-        mv ${BOSH_INSTALL_TARGET}/otelcol-contrib ${BOSH_INSTALL_TARGET}/bin/otelcollector
+        mv ${BOSH_INSTALL_TARGET}/otelcol-* ${BOSH_INSTALL_TARGET}/bin/otelcollector
         ;;
     *)  
         echo "Unknown file extension, valid types are bin and tgz"

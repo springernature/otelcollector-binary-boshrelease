@@ -4,6 +4,7 @@ name: otelcollector-linux-amd64
 dependencies: []
 
 files:
-- otelcollector-linux-amd64/otelcol-contrib_0.107.0_linux_amd64.bin  # https://github.com/springernature/o11y-otel-contextprocessor/releases/download/v0.107.0-cfgardenobserver0/otelcol-dev.bin
-# - otelcollector-linux-amd64/otelcol-contrib_0.100.0_linux_amd64.tgz  # https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.100.0/otelcol-contrib_0.100.0_linux_amd64.tar.gz
-- bosh-helpers/**/*
+ - bosh-helpers/**/*
+ - otelcollector-linux-amd64/otelcol_contrib_0.107.0_linux_amd64.bin  # https://github.com/springernature/o11y-otel-contextprocessor/releases/download/v0.107.0-sn/otelcol-custom_0.107.0-sn_linux_amd64.bin
+#- otelcollector-linux-amd64/otelcol-contrib_0.100.0_linux_amd64.tgz  # https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.100.0/otelcol-contrib_0.100.0_linux_amd64.tar.gz
+
