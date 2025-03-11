@@ -145,6 +145,24 @@ bosh -e <bosh-env> upload-release /tmp/release.tgz
 Final versions are released by the GH Action workflow.
 Please commit all changes (and blobs) and then push an annotated tag to the repository.
 
+```
+# git add config
+# git add packages
+# git add blobs*
+# git status .
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        new file:   blobs/otelcollector-linux-amd64/otelcol_contrib_0.121.0_linux_amd64.bin
+        new file:   blobstore/a632163d-15d8-41c6-4871-e45ce2153166
+        modified:   config/blobs.yml
+        modified:   packages/otelcollector-linux-amd64/spec
+
+# git commit -m "update otelcol"
+```
+
 > [!WARNING]  
 > Do not commit `releases` and `.final_builds` resources created when doing a final release manually. Those are commit by the pipeline
 
