@@ -18,3 +18,7 @@ otelcollector-linux-amd64/otelcol-contrib_0.121.0_linux_amd64.bin:
   size: 323136848
   object_id: 488136d6-e6cf-493f-7f81-8cb78c42bd55
   sha: sha256:1945db79159a10c1611f5d591b60e73146cf86b99d1da38584552abff857935d
+otelcollector-linux-amd64/otelcol-contrib_0.121.1_linux_amd64.bin:
+  size: 323140976
+  object_id: e681adc8-1782-496a-46f0-f5988c4b735b
+  sha: sha256:b53166219d7e18da4d1fb80c565ca3fdb1aa1685cdfbe7f5ce37aa62997cb6c7
