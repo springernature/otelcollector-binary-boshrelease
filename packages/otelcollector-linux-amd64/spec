@@ -5,6 +5,6 @@ dependencies: []
 
 files:
  - bosh-helpers/**/*
- - otelcollector-linux-amd64/otelcol-contrib_0.123.0_linux_amd64.bin  # https://github.com/springernature/o11y-otel-contextprocessor/releases/download/v0.123.0-sn0/otelcol-custom_0.123.0-sn0_linux_amd64.bin
+ - otelcollector-linux-amd64/otelcol-contrib_0.126.0_linux_amd64.bin  # https://github.com/springernature/o11y-otel-contextprocessor/releases/download/v0.126.0-sn0/otelcol-custom_0.126.0-sn0_linux_amd64.bin
 #- otelcollector-linux-amd64/otelcol-contrib_0.100.0_linux_amd64.tgz  # https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.100.0/otelcol-contrib_0.100.0_linux_amd64.tar.gz
 #  Make sure the format of the binary is like: otelcollector-linux-amd64/otelcol-contrib_<VERSION>_linux_amd64.bin
