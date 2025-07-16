@@ -53,7 +53,7 @@ jobs:
         then
           # the trigger does not come from a tag. Not a final version
           bosh create-release --tarball="$GITHUB_WORKSPACE/.build/$RELEASE.tgz"
-          version=$(ls dev_releases/$RELEASE/*.yml | sed 's/.*\/.*-\(.*\)\.yml$/\1/' | sort -t. -k 1,1nr -k 2,2nr | head -1)
+          version=$(ls dev_releases/$RELEASE/$RELEASE*.yml | sed 's/.*\/.*-\(.*\)\.yml$/\1/' | sort -V | tail -n 1)
           echo "type=dev" | tee -a $GITHUB_OUTPUT
         else
           tag="${GITHUB_REF_NAME}"
@@ -67,7 +67,7 @@ jobs:
             echo "Tag does not match version (tag=$tag). Let bosh to calculate the next one"
             bosh create-release --final --tarball="$GITHUB_WORKSPACE/.build/$RELEASE.tgz"
           fi
-          version=$(ls releases/$RELEASE/*.yml | sed 's/.*\/.*-\(.*\)\.yml$/\1/' | sort -t. -k 1,1nr -k 2,2nr | head -1)
+          version=$(ls releases/$RELEASE/$RELEASE*.yml | sed 's/.*\/.*-\(.*\)\.yml$/\1/' | sort -V | tail -n 1)
           echo "type=final" | tee -a >> $GITHUB_OUTPUT
         fi
         echo "version=${version}" | tee -a $GITHUB_OUTPUT
