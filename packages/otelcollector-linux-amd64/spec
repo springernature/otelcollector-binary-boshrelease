@@ -5,6 +5,6 @@ dependencies: []
 
 files:
  - bosh-helpers/**/*
- - otelcollector-linux-amd64/otelcol-contrib_0.138.00_linux_amd64.bin  # https://github.com/springernature/o11y-otel-contextprocessor/releases/download/v0.138.0-sn0/otelcol-custom_0.138.0-sn0_linux_amd64.bin
+ - otelcollector-linux-amd64/otelcol-contrib_0.138.01_linux_amd64.bin  # https://github.com/springernature/o11y-otel-contextprocessor/releases/download/v0.138.0-sn1/otelcol-custom_0.138.0-sn0_linux_amd64.bin
  # otelcollector-linux-amd64/otelcol-contrib_0.130.01_linux_amd64.bin  # https://github.com/springernature/o11y-otel-contextprocessor/releases/download/v0.130.0-sn1/otelcol-custom_0.130.0-sn1_linux_amd64.bin
 #  Make sure the format of the binary is like: otelcollector-linux-amd64/otelcol-contrib_<VERSION>_linux_amd64.bin
