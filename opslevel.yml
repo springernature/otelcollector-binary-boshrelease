@@ -1,0 +1,13 @@
+version: 1
+component:
+  name: otelcollector-binary-boshrelease
+  owner: engineering-enablement
+  description: "Simple Bosh release to deploy binary OpenTelemetry collector from upstream"
+  type: application_module
+  lifecycle: core
+  tier: Internal-Only
+  language: shell
+  system: APPL-437
+  properties:
+    pipelines:
+      - workflow_90420366  # .github/workflows/release-final-boshrelease.yml
