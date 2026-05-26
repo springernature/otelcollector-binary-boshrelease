@@ -23,7 +23,7 @@ jobs:
       packages: write
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         fetch-depth: 0
         lfs: true
@@ -75,7 +75,7 @@ jobs:
         echo "release=$RELEASE" | tee -a $GITHUB_OUTPUT
 
     - name: Uploads artifact release
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: "${{ steps.boshrelease.outputs.release }}-${{ steps.boshrelease.outputs.version }}-boshrelease"
         path: ${{ steps.boshrelease.outputs.file }}
@@ -124,7 +124,7 @@ jobs:
         EOF
 
     - name: Create a Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65f # v2.6.2
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         prerelease: ${{ steps.boshrelease.outputs.type != 'final' }}
