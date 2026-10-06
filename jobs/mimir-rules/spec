@@ -28,7 +28,7 @@ properties:
   mimir-rules.auth.key:
     description: "Optional API key / password (MIMIR_API_KEY)"
   mimir-rules.sync_mode:
-    description: "'sync' (idempotent, prunes removed groups in the namespace) or 'load'"
+    description: "'load' (create/update groups), 'sync' (idempotent, prunes removed groups in the namespace), 'delete-namespace' (delete the whole namespace defined in the rules) or 'delete-groups' (delete only the groups defined in the rules)"
     default: load
   mimir-rules.fail_on_error:
     description: "If true, a failed sync fails post-start (and the deploy)"

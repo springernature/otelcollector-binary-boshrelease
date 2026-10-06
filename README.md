@@ -126,6 +126,7 @@ It has no long-running process (empty `monit`).
   `bosh -d <dep> run-errand mimir-rules`
 * **bootstrap only**: by default (`bootstrap_only: true`) the upload only runs on the
   bootstrap instance of the instance group. The other instances log "not bootstrap" and skip it.
+* The rules must define a `namespace` (validated at render time, the deploy fails otherwise).
 * Logs go to `/var/vcap/sys/log/mimir-rules/mimir-rules.log`. The API key is never printed.
 
 Parameters (see `jobs/mimir-rules/spec`):
@@ -138,7 +139,7 @@ Parameters (see `jobs/mimir-rules/spec`):
 | `mimir-rules.rules` | Rules content in mimirtool format (`{namespace, groups}`); YAML string or hash | |
 | `mimir-rules.auth.user` | Optional basic auth user (`MIMIR_API_USER`) | |
 | `mimir-rules.auth.key` | Optional API key / password (`MIMIR_API_KEY`) | |
-| `mimir-rules.sync_mode` | `sync` (idempotent, prunes removed groups in the namespace) or `load` | `load` |
+| `mimir-rules.sync_mode` | `load` (create/update groups), `sync` (idempotent, prunes removed groups in the namespace), `delete-namespace` (delete the whole namespace defined in the rules) or `delete-groups` (delete only the groups defined in the rules) | `load` |
 | `mimir-rules.fail_on_error` | If true, a failed sync fails post-start (and the deploy) | `true` |
 | `mimir-rules.bootstrap_only` | Only run on the bootstrap instance of the instance group | `true` |
 | `mimir-rules.retries` | Number of attempts before giving up (backoff 5s, 10s, 20s, ...) | `5` |

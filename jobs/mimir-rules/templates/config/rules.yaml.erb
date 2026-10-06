@@ -9,5 +9,11 @@
   unless groups.is_a?(Array)
     raise "mimir-rules.rules must contain a 'groups' array"
   end
+  if p('mimir-rules.enabled')
+    namespace = rules['namespace']
+    if !namespace.is_a?(String) || namespace.strip.empty?
+      raise "mimir-rules.rules must define a non-empty 'namespace'"
+    end
+  end
 -%>
 <%= YAML.dump(rules) %>

@@ -38,19 +38,57 @@ if [ "${BOOTSTRAP_ONLY}" == "true" ] && [ "${INSTANCE_BOOTSTRAP}" != "1" ]; then
   exit 0
 fi
 
-echo_log "Checking rules file ${RULES_FILE} ..."
+<%
+  require 'yaml'
+  require 'shellwords'
+  raw = p('mimir-rules.enabled') ? p('mimir-rules.rules') : p('mimir-rules.rules', { 'groups' => [] })
+  rules = raw.is_a?(String) ? YAML.safe_load(raw) : raw
+  rules = {} unless rules.is_a?(Hash)
+  rule_groups = (rules['groups'] || []).map { |g| g.is_a?(Hash) ? g['name'].to_s : '' }.reject(&:empty?)
+-%>
+NAMESPACE=<%= Shellwords.escape(rules['namespace'].to_s) %>
+RULE_GROUPS=(<%= rule_groups.map { |g| Shellwords.escape(g) }.join(' ') %>)
+
+if [ -z "${NAMESPACE}" ]; then
+  fail "No namespace defined in ${RULES_FILE}, it is mandatory"
+fi
+
+echo_log "Checking rules file ${RULES_FILE} (namespace=${NAMESPACE}) ..."
 if ! "${MIMIRTOOL}" rules check "${RULES_FILE}"; then
   fail "mimirtool rules check failed for ${RULES_FILE}"
 fi
+
+COMMON_ARGS=(--address="${MIMIR_ADDRESS}" --id="${MIMIR_TENANT_ID}")
+
+run_mimirtool() {
+  case "${SYNC_MODE}" in
+    load|sync)
+      "${MIMIRTOOL}" rules "${SYNC_MODE}" "${COMMON_ARGS[@]}" "${RULES_FILE}"
+      ;;
+    delete-namespace)
+      "${MIMIRTOOL}" rules delete-namespace "${COMMON_ARGS[@]}" "${NAMESPACE}"
+      ;;
+    delete-groups)
+      local group
+      for group in ${RULE_GROUPS[@]+"${RULE_GROUPS[@]}"}; do
+        echo_log "Deleting group '${group}' in namespace '${NAMESPACE}' ..."
+        "${MIMIRTOOL}" rules delete "${COMMON_ARGS[@]}" "${NAMESPACE}" "${group}" || return 1
+      done
+      ;;
+    *)
+      echo_log "Unknown sync_mode '${SYNC_MODE}'"
+      return 1
+      ;;
+  esac
+}
 
 # MIMIR_API_USER / MIMIR_API_KEY are read by mimirtool from the environment.
 # Never print MIMIR_API_KEY.
 attempt=1
 delay=5
 while true; do
-  echo_log "Running mimirtool rules ${SYNC_MODE} (address=${MIMIR_ADDRESS}, tenant=${MIMIR_TENANT_ID}, attempt ${attempt}/${RETRIES}) ..."
-  # shellcheck disable=SC2086
-  if "${MIMIRTOOL}" rules ${SYNC_MODE} --address="${MIMIR_ADDRESS}" --id="${MIMIR_TENANT_ID}" ${EXTRA_HEADERS_ARGS} ${EXTRA_ARGS} "${RULES_FILE}"; then
+  echo_log "Running mimirtool rules ${SYNC_MODE} (address=${MIMIR_ADDRESS}, tenant=${MIMIR_TENANT_ID}, namespace=${NAMESPACE}, attempt ${attempt}/${RETRIES}) ..."
+  if run_mimirtool; then
     echo_log "Rules ${SYNC_MODE} done"
     exit 0
   fi

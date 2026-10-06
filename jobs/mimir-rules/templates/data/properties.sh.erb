@@ -22,7 +22,8 @@ export FAIL_ON_ERROR=<%= p('mimir-rules.fail_on_error') ? 'true' : 'false' %>
 export RETRIES=<%= Integer(p('mimir-rules.retries')) %>
 <%
   mode = p('mimir-rules.sync_mode').to_s
-  raise "mimir-rules.sync_mode must be 'sync' or 'load'" unless %w(sync load).include?(mode)
+  modes = %w(load sync delete-namespace delete-groups)
+  raise "mimir-rules.sync_mode must be one of: #{modes.join(', ')}" unless modes.include?(mode)
 -%>
 export SYNC_MODE=<%= Shellwords.escape(mode) %>
 <% if p('mimir-rules.enabled') -%>
@@ -38,5 +39,3 @@ export MIMIR_API_USER=<%= Shellwords.escape(user) %>
 <% if_p('mimir-rules.auth.key') do |key| -%>
 export MIMIR_API_KEY=<%= Shellwords.escape(key) %>
 <% end -%>
-export EXTRA_HEADERS_ARGS="${EXTRA_HEADERS_ARGS:-}"
-export EXTRA_ARGS="${EXTRA_ARGS:-}"
