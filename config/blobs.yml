@@ -1,6 +1,6 @@
 mimirtool-linux-amd64/mimirtool-linux-amd64-3.2.1:
   size: 86384802
-  object_id: cc5191a4-a02a-4773-7be1-e0d6260c7a83
+  object_id: 428841bb-a2e0-41c2-5231-241bd6751f4d
   sha: sha256:9449c8a7998b8f434e3c5c110223f8c7cf212d488a213d16c0721efb3789794b
 otelcollector-linux-amd64/otelcol-contrib_0.96.0_linux_amd64.tar.gz:
   size: 64650989
@@ -56,5 +56,5 @@ otelcollector-linux-amd64/otelcol-contrib_0.138.01_linux_amd64.bin:
   sha: sha256:ed5810e7f6f2b53f55235c5c00be5e81e19fe7620a5f98ff68fb0c77ce7bc516
 otelcollector-linux-amd64/otelcol-contrib_0.145.0_linux_amd64.bin:
   size: 357941410
-  object_id: 30014c02-75d2-40ab-6332-bd6557acdd3c
+  object_id: 42d5d950-7517-4e59-7b51-145ff3d11e67
   sha: sha256:3d4523d7385c20fcb5ef0357e3cfbe247e704d2380bcd2f820a46531a84b9ed8
