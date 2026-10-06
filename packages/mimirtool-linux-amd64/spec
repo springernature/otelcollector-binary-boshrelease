@@ -1,0 +1,8 @@
+---
+name: mimirtool-linux-amd64
+
+dependencies: []
+
+files:
+- mimirtool-linux-amd64/mimirtool-linux-amd64-3.2.1   # https://github.com/grafana/mimir/releases/download/mimir-3.2.1/mimirtool-linux-amd64
+#  Make sure the format of the binary is like: mimirtool-linux-amd64/mimirtool-linux-amd64-<VERSION>

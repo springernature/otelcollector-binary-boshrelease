@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+#
+set -e # exit immediately if a simple command exits with a non-zero status
+set -u # report the usage of uninitialized variables
+
+# Load job properties
+source /var/vcap/jobs/mimir-rules/data/properties.sh
+
+# Setup env vars and folders
+source /var/vcap/jobs/mimir-rules/packages/bosh-helpers/setup.sh "mimir-rules"
+
+# Load function lib
+source /var/vcap/jobs/mimir-rules/packages/bosh-helpers/lib.sh
+
+MIMIRTOOL=/var/vcap/jobs/mimir-rules/packages/mimirtool-linux-amd64/bin/mimirtool
+RULES_FILE=/var/vcap/jobs/mimir-rules/config/rules.yaml
+
+# All output appended to the log file and echoed to stdout
+exec > >(tee -a "${LOG_DIR}/mimir-rules.log") 2>&1
+
+fail() {
+  local msg="${1}"
+  if [ "${FAIL_ON_ERROR}" == "true" ]; then
+    echo_log "ERROR: ${msg}"
+    exit 1
+  fi
+  echo_log "WARNING: ${msg} (fail_on_error=false, ignoring)"
+  exit 0
+}
+
+if [ "${ENABLED}" != "true" ]; then
+  echo_log "mimir-rules disabled, nothing to do"
+  exit 0
+fi
+
+if [ "${BOOTSTRAP_ONLY}" == "true" ] && [ "${INSTANCE_BOOTSTRAP}" != "1" ]; then
+  echo_log "Not bootstrap instance (${JOB_FULL}) and bootstrap_only=true, skipping"
+  exit 0
+fi
+
+echo_log "Checking rules file ${RULES_FILE} ..."
+if ! "${MIMIRTOOL}" rules check "${RULES_FILE}"; then
+  fail "mimirtool rules check failed for ${RULES_FILE}"
+fi
+
+# MIMIR_API_USER / MIMIR_API_KEY are read by mimirtool from the environment.
+# Never print MIMIR_API_KEY.
+attempt=1
+delay=5
+while true; do
+  echo_log "Running mimirtool rules ${SYNC_MODE} (address=${MIMIR_ADDRESS}, tenant=${MIMIR_TENANT_ID}, attempt ${attempt}/${RETRIES}) ..."
+  # shellcheck disable=SC2086
+  if "${MIMIRTOOL}" rules ${SYNC_MODE} --address="${MIMIR_ADDRESS}" --id="${MIMIR_TENANT_ID}" ${EXTRA_HEADERS_ARGS} ${EXTRA_ARGS} "${RULES_FILE}"; then
+    echo_log "Rules ${SYNC_MODE} done"
+    exit 0
+  fi
+  if [ "${attempt}" -ge "${RETRIES}" ]; then
+    break
+  fi
+  echo_log "mimirtool rules ${SYNC_MODE} failed, retrying in ${delay}s ..."
+  sleep "${delay}"
+  attempt=$((attempt + 1))
+  delay=$((delay * 2))
+done
+
+fail "mimirtool rules ${SYNC_MODE} failed after ${RETRIES} attempts"

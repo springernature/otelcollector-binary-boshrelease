@@ -113,6 +113,48 @@ Parameters (see `jobs/otelcollector-bin/spec`):
             exporters: [debug]
 ```
 
+# mimir-rules job
+
+The `mimir-rules` job uploads Prometheus/Mimir recording (or alerting) rules to Mimir
+with [mimirtool](https://grafana.com/docs/mimir/latest/manage/tools/mimirtool/)
+(`mimirtool rules load|sync`). Before the upload, it checks the rules with `mimirtool rules check`.
+It has no long-running process (empty `monit`).
+
+* **post-start**: runs on every start or deploy of the instance. If `fail_on_error: true`
+  (the default), a failed upload fails the deploy.
+* **errand**: you can run the same logic on demand. If the job is colocated in an instance group, run:
+  `bosh -d <dep> run-errand mimir-rules`
+* **bootstrap only**: by default (`bootstrap_only: true`) the upload only runs on the
+  bootstrap instance of the instance group. The other instances log "not bootstrap" and skip it.
+* Logs go to `/var/vcap/sys/log/mimir-rules/mimir-rules.log`. The API key is never printed.
+
+Parameters (see `jobs/mimir-rules/spec`):
+
+| Property | Description | Default |
+|---|---|---|
+| `mimir-rules.enabled` | Enable rules sync | `true` |
+| `mimir-rules.address` | Mimir base URL (mimirtool calls `<address>/prometheus/config/v1/rules`) | |
+| `mimir-rules.tenant_id` | Tenant id (`X-Scope-OrgID`) | |
+| `mimir-rules.rules` | Rules content in mimirtool format (`{namespace, groups}`); YAML string or hash | |
+| `mimir-rules.auth.user` | Optional basic auth user (`MIMIR_API_USER`) | |
+| `mimir-rules.auth.key` | Optional API key / password (`MIMIR_API_KEY`) | |
+| `mimir-rules.sync_mode` | `sync` (idempotent, prunes removed groups in the namespace) or `load` | `load` |
+| `mimir-rules.fail_on_error` | If true, a failed sync fails post-start (and the deploy) | `true` |
+| `mimir-rules.bootstrap_only` | Only run on the bootstrap instance of the instance group | `true` |
+| `mimir-rules.retries` | Number of attempts before giving up (backoff 5s, 10s, 20s, ...) | `5` |
+
+Example (see also `manifest/deployment-add-mimir-rules.yml`):
+
+```yaml
+- name: mimir-rules
+  release: otelcollector-binary
+  properties:
+    mimir-rules:
+      address: https://mimir.example.com
+      tenant_id: my-tenant
+      rules: ((recording_rules))   # e.g. bosh deploy --var-file recording_rules=rules.yml
+```
+
 # Updating the collector binary
 
 To update the collector deployed by this release:

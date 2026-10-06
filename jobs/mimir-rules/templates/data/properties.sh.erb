@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+<% require 'shellwords' -%>
+
+# job name & index of this VM within cluster
+export DEPLOYMENT_NAME="<%= spec.deployment %>"
+
+# e.g. JOB_NAME=redis, JOB_INDEX=0
+export JOB_NAME='<%= name %>'
+export JOB_INDEX="<%= spec.index %>"
+# full job name, like redis/0 or webapp/3
+export JOB_FULL="$JOB_NAME/$JOB_INDEX"
+export JOB_AZ="<%= spec.az %>"
+
+export INSTANCE_BOOTSTRAP=<% if spec.bootstrap == true %>1<% else %>0<% end %>
+export INSTANCE_NAME="<%= spec.name %>"
+export INSTANCE_ID="<%= spec.id %>"
+
+# job properties
+export ENABLED=<%= p('mimir-rules.enabled') ? 'true' : 'false' %>
+export BOOTSTRAP_ONLY=<%= p('mimir-rules.bootstrap_only') ? 'true' : 'false' %>
+export FAIL_ON_ERROR=<%= p('mimir-rules.fail_on_error') ? 'true' : 'false' %>
+export RETRIES=<%= Integer(p('mimir-rules.retries')) %>
+<%
+  mode = p('mimir-rules.sync_mode').to_s
+  raise "mimir-rules.sync_mode must be 'sync' or 'load'" unless %w(sync load).include?(mode)
+-%>
+export SYNC_MODE=<%= Shellwords.escape(mode) %>
+<% if p('mimir-rules.enabled') -%>
+export MIMIR_ADDRESS=<%= Shellwords.escape(p('mimir-rules.address')) %>
+export MIMIR_TENANT_ID=<%= Shellwords.escape(p('mimir-rules.tenant_id')) %>
+<% else -%>
+export MIMIR_ADDRESS=<%= Shellwords.escape(p('mimir-rules.address', '')) %>
+export MIMIR_TENANT_ID=<%= Shellwords.escape(p('mimir-rules.tenant_id', '')) %>
+<% end -%>
+<% if_p('mimir-rules.auth.user') do |user| -%>
+export MIMIR_API_USER=<%= Shellwords.escape(user) %>
+<% end -%>
+<% if_p('mimir-rules.auth.key') do |key| -%>
+export MIMIR_API_KEY=<%= Shellwords.escape(key) %>
+<% end -%>
+export EXTRA_HEADERS_ARGS="${EXTRA_HEADERS_ARGS:-}"
+export EXTRA_ARGS="${EXTRA_ARGS:-}"

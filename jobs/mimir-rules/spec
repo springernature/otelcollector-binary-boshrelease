@@ -1,0 +1,41 @@
+---
+name: mimir-rules
+description: Upload Prometheus/Mimir recording/alerting rules with mimirtool (post-start and errand)
+
+templates:
+  bin/post-start.erb: bin/post-start
+  bin/run.erb: bin/run                 # errand entrypoint (on-demand resync)
+  bin/sync.sh.erb: bin/sync.sh         # shared logic
+  config/rules.yaml.erb: config/rules.yaml
+  data/properties.sh.erb: data/properties.sh
+
+packages:
+- mimirtool-linux-amd64
+- bosh-helpers
+
+properties:
+  mimir-rules.enabled:
+    description: "Enable rules sync"
+    default: true
+  mimir-rules.address:
+    description: "Mimir base URL (mimirtool calls <address>/prometheus/config/v1/rules)"
+  mimir-rules.tenant_id:
+    description: "Tenant id (X-Scope-OrgID)"
+  mimir-rules.rules:
+    description: "Rules content in mimirtool format ({namespace, groups}); YAML string or hash"
+  mimir-rules.auth.user:
+    description: "Optional basic auth user (MIMIR_API_USER)"
+  mimir-rules.auth.key:
+    description: "Optional API key / password (MIMIR_API_KEY)"
+  mimir-rules.sync_mode:
+    description: "'sync' (idempotent, prunes removed groups in the namespace) or 'load'"
+    default: load
+  mimir-rules.fail_on_error:
+    description: "If true, a failed sync fails post-start (and the deploy)"
+    default: true
+  mimir-rules.bootstrap_only:
+    description: "Only run on the bootstrap instance of the instance group"
+    default: true
+  mimir-rules.retries:
+    description: "Number of attempts before giving up"
+    default: 5

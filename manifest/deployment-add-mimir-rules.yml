@@ -1,0 +1,14 @@
+# Adds the mimir-rules job (post-start + errand) to the otelcollector instance group.
+# Usage: bosh deploy ... -o deployment-add-mimir-rules.yml \
+#          -v mimir_address=https://mimir.example.com -v mimir_tenant_id=my-tenant \
+#          --var-file recording_rules=rules.yml
+- type: replace
+  path: /instance_groups/name=otelcollector/jobs/name=mimir-rules?
+  value:
+    name: mimir-rules
+    release: otelcollector-binary
+    properties:
+      mimir-rules:
+        address: ((mimir_address))
+        tenant_id: ((mimir_tenant_id))
+        rules: ((recording_rules))

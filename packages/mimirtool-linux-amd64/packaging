@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -e -x
+
+FILE=$(ls -vr mimirtool-linux-amd64/mimirtool-linux-amd64-* | head -1)
+echo "Copying mimirtool binary ${FILE} ..."
+mkdir -p ${BOSH_INSTALL_TARGET}/bin
+cp "${FILE}" ${BOSH_INSTALL_TARGET}/bin/mimirtool
+chmod a+x ${BOSH_INSTALL_TARGET}/bin/*

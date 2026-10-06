@@ -1,0 +1,13 @@
+<%
+  require 'yaml'
+  raw = p('mimir-rules.enabled') ? p('mimir-rules.rules') : p('mimir-rules.rules', { 'groups' => [] })
+  rules = raw.is_a?(String) ? YAML.safe_load(raw) : raw
+  unless rules.is_a?(Hash)
+    raise "mimir-rules.rules must be a YAML mapping (mimirtool format: {namespace, groups})"
+  end
+  groups = rules['groups'] || rules[:groups]
+  unless groups.is_a?(Array)
+    raise "mimir-rules.rules must contain a 'groups' array"
+  end
+-%>
+<%= YAML.dump(rules) %>
