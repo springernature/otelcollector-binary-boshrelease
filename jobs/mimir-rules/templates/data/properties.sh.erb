@@ -26,13 +26,9 @@ export RETRIES=<%= Integer(p('mimir-rules.retries')) %>
   raise "mimir-rules.sync_mode must be one of: #{modes.join(', ')}" unless modes.include?(mode)
 -%>
 export SYNC_MODE=<%= Shellwords.escape(mode) %>
-<% if p('mimir-rules.enabled') -%>
-export MIMIR_ADDRESS=<%= Shellwords.escape(p('mimir-rules.address')) %>
-export MIMIR_TENANT_ID=<%= Shellwords.escape(p('mimir-rules.tenant_id')) %>
-<% else -%>
+<% raise "mimir-rules.address and tenant_id are required" if p('mimir-rules.enabled') && (p('mimir-rules.address', '').empty? || p('mimir-rules.tenant_id', '').empty?) -%>
 export MIMIR_ADDRESS=<%= Shellwords.escape(p('mimir-rules.address', '')) %>
 export MIMIR_TENANT_ID=<%= Shellwords.escape(p('mimir-rules.tenant_id', '')) %>
-<% end -%>
 <% if_p('mimir-rules.auth.user') do |user| -%>
 export MIMIR_API_USER=<%= Shellwords.escape(user) %>
 <% end -%>

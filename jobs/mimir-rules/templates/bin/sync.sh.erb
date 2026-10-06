@@ -53,6 +53,10 @@ if [ -z "${NAMESPACE}" ]; then
   fail "No namespace defined in ${RULES_FILE}, it is mandatory"
 fi
 
+if [ -z "${MIMIR_ADDRESS}" ] || [ -z "${MIMIR_TENANT_ID}" ]; then
+  fail "mimir-rules.address and mimir-rules.tenant_id are mandatory"
+fi
+
 echo_log "Checking rules file ${RULES_FILE} (namespace=${NAMESPACE}) ..."
 if ! "${MIMIRTOOL}" rules check "${RULES_FILE}"; then
   fail "mimirtool rules check failed for ${RULES_FILE}"
