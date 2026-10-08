@@ -1,0 +1,38 @@
+name: otelcollector-binary
+version: 4.2.0
+commit_hash: 7caf799
+uncommitted_changes: false
+jobs:
+- name: mimir-rules
+  version: 7c09274dbeb9bf80b913e57193f537385bc5edd7d49bfeff31a16c26026a0743
+  fingerprint: 7c09274dbeb9bf80b913e57193f537385bc5edd7d49bfeff31a16c26026a0743
+  sha1: sha256:d0eef8d2f558c22de3d82f1000571a70cb642104aab93466724b5461c0e28d57
+  packages:
+  - mimirtool-linux-amd64
+  - bosh-helpers
+- name: otelcollector-bin
+  version: 14056d71de545df12767a5d627acb956f58b6e39b0412260bf509774fe54747f
+  fingerprint: 14056d71de545df12767a5d627acb956f58b6e39b0412260bf509774fe54747f
+  sha1: sha256:f7186548117f89d0491059e6a0d9d8edbf14cd1f01e01b245177afce90a13020
+  packages:
+  - otelcollector-linux-amd64
+packages:
+- name: bosh-helpers
+  version: 04875dd73de3bae96a5a2f1eb13b3eba54e997e449afdf2c83adc51153bab3e0
+  fingerprint: 04875dd73de3bae96a5a2f1eb13b3eba54e997e449afdf2c83adc51153bab3e0
+  sha1: sha256:9d470e440e6afa9030aab2dba85b95ce0f4880241967cbdb878e3a83b8cd995e
+  dependencies: []
+- name: mimirtool-linux-amd64
+  version: 25438623b60ccddd38fd02051ac16c74ad540d994c269e8f3ec233c9ab1ac2f6
+  fingerprint: 25438623b60ccddd38fd02051ac16c74ad540d994c269e8f3ec233c9ab1ac2f6
+  sha1: sha256:249bb53bff2f099c59bdb8661226be989fe5cf9eefaaf087b7ac4da9254c27ad
+  dependencies: []
+- name: otelcollector-linux-amd64
+  version: 2c9e1943b1d0c56e75f69926a90e1e0d57b186c86f9fc47e6985937d5aef2bf5
+  fingerprint: 2c9e1943b1d0c56e75f69926a90e1e0d57b186c86f9fc47e6985937d5aef2bf5
+  sha1: sha256:613dc19760a6cbeecbbb97f5cbfb6ecd06bc5b93181d2ab196bdaa40407a7687
+  dependencies: []
+license:
+  version: 54ff7ca67def519276a064d4f3e2622f06112df8bd1837350f26daf2a5b03200
+  fingerprint: 54ff7ca67def519276a064d4f3e2622f06112df8bd1837350f26daf2a5b03200
+  sha1: sha256:8de8dce6750b0d000b7362f41bf665c181b2deb7552250f8e948682d731fe896
