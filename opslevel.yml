@@ -2,7 +2,7 @@ version: 1
 component:
   name: otelcollector-binary-boshrelease
   owner: ee-observe
-  description: "Simple Bosh release to deploy binary OpenTelemetry collector from upstream"
+  description: Bosh release to deploy binary OpenTelemetry collector"
   type: application_module
   lifecycle: core
   tier: Internal-Only

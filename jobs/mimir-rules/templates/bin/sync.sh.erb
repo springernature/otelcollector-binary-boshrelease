@@ -66,8 +66,13 @@ COMMON_ARGS=(--address="${MIMIR_ADDRESS}" --id="${MIMIR_TENANT_ID}")
 
 run_mimirtool() {
   case "${SYNC_MODE}" in
-    load|sync)
-      "${MIMIRTOOL}" rules "${SYNC_MODE}" "${COMMON_ARGS[@]}" "${RULES_FILE}"
+    load)
+      "${MIMIRTOOL}" rules load "${COMMON_ARGS[@]}" "${RULES_FILE}"
+      ;;
+    sync)
+      # Limit sync to our namespace, otherwise mimirtool deletes every other
+      # namespace of the tenant that is not present in the rules file
+      "${MIMIRTOOL}" rules sync "${COMMON_ARGS[@]}" --namespaces="${NAMESPACE}" "${RULES_FILE}"
       ;;
     delete-namespace)
       "${MIMIRTOOL}" rules delete-namespace "${COMMON_ARGS[@]}" "${NAMESPACE}"
