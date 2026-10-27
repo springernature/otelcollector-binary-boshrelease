@@ -148,7 +148,6 @@ runs `mimirtool rules check` and `mimirtool rules lint --dry-run` (report only, 
 | `mimir-rules.auth.key` | Default optional API key / password (`MIMIR_API_KEY`) | |
 | `mimir-rules.sync_mode` | Default mode for all rule sets (see below) | `load` |
 | `mimir-rules.rulesets` | Hash of rule sets keyed by id (see below) | `{}` |
-| `mimir-rules.rules` | Legacy (v4.2.0): one rule set `{namespace, groups}`, YAML string or hash. Treated as rule set `default` | |
 | `mimir-rules.fail_on_error` | If true, the job fails (and the deploy) when any rule set failed | `true` |
 | `mimir-rules.bootstrap_only` | Only run on the bootstrap instance of the instance group | `true` |
 | `mimir-rules.retries` | Number of attempts per API call before giving up | `5` |
@@ -228,9 +227,16 @@ To delete it:
 
 ### Upgrading from v4.2.0
 
-No change is needed. `mimir-rules.rules` keeps working as rule set `default`, inheriting the top-level
-`address`, `tenant_id`, `auth` and `sync_mode`. It can be combined with `rulesets`, but not with
-`rulesets.default`.
+The `mimir-rules.rules` property has been removed. A manifest that only sets `rules` now fails at
+render time (`enabled but no 'rulesets' defined`). Move its content to a rule set:
+
+```yaml
+mimir-rules:
+  rulesets:
+    default:            # any id
+      namespace: ...    # the 'namespace' of the old rules
+      groups: [ ... ]   # the 'groups' of the old rules
+```
 
 ## mimir-alertmanager job
 
@@ -244,7 +250,7 @@ Alertmanager configuration per tenant, so `tenant_id` must be unique per address
 | `mimir-alertmanager.auth.user` | Default optional basic auth user (`MIMIR_API_USER`) | |
 | `mimir-alertmanager.auth.key` | Default optional API key / password (`MIMIR_API_KEY`) | |
 | `mimir-alertmanager.configs` | Hash of configs keyed by id (see below) | `{}` |
-| `mimir-alertmanager.fail_on_error` | If true, the job fails (and the deploy) when any config failed | `false` |
+| `mimir-alertmanager.fail_on_error` | If true, the job fails (and the deploy) when any config failed | `true` |
 | `mimir-alertmanager.bootstrap_only` | Only run on the bootstrap instance of the instance group | `true` |
 | `mimir-alertmanager.retries` | Number of attempts per API call before giving up | `5` |
 

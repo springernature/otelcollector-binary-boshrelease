@@ -70,8 +70,9 @@ with_retries() {
   done
 }
 
-# Process one rule set. Runs in a subshell (see main loop), so credentials
-# exported here do not leak to the other rule sets. Never print MIMIR_API_KEY.
+# Process one rule set. Runs in a subshell with 'set -e' (see main loop): any
+# failing command aborts only this rule set. Credentials exported here do not
+# leak to the other rule sets. Never print MIMIR_API_KEY.
 process_ruleset() {
   local i="${1}"
   local id="${RS_ID[$i]}"
@@ -87,34 +88,30 @@ process_ruleset() {
   if [ -n "${RS_KEY[$i]}" ]; then export MIMIR_API_KEY="${RS_KEY[$i]}"; fi
 
   echo_log "[${id}] namespace=${namespace} tenant=${RS_TENANT_ID[$i]} address=${RS_ADDRESS[$i]} mode=${mode}"
-  echo "${RS_CONTENT[$i]}" | base64 -d > "${file}" || return 1
+  echo "${RS_CONTENT[$i]}" | base64 -d > "${file}"
 
   echo_log "[${id}] mimirtool rules check ${file}"
-  "${MIMIRTOOL}" rules check "${file}" || return 1
+  "${MIMIRTOOL}" rules check "${file}"
   echo_log "[${id}] mimirtool rules lint --dry-run ${file}"
-  "${MIMIRTOOL}" rules lint --dry-run "${file}" || return 1
+  "${MIMIRTOOL}" rules lint --dry-run "${file}"
 
   case "${mode}" in
     load)
-      with_retries "[${id}] mimirtool rules load" \
-        "${MIMIRTOOL}" rules load "${args[@]}" "${file}" || return 1
+      with_retries "[${id}] mimirtool rules load" "${MIMIRTOOL}" rules load "${args[@]}" "${file}"
       ;;
     sync)
       # Always scoped to the rule set namespace: never prune other namespaces
-      with_retries "[${id}] mimirtool rules sync --namespaces=${namespace}" \
-        "${MIMIRTOOL}" rules sync "${args[@]}" --namespaces="${namespace}" "${file}" || return 1
+      with_retries "[${id}] mimirtool rules sync --namespaces=${namespace}" "${MIMIRTOOL}" rules sync "${args[@]}" --namespaces="${namespace}" "${file}"
       ;;
     delete-namespace)
-      with_retries "[${id}] mimirtool rules delete-namespace ${namespace}" \
-        "${MIMIRTOOL}" rules delete-namespace "${args[@]}" "${namespace}" || return 1
+      with_retries "[${id}] mimirtool rules delete-namespace ${namespace}" "${MIMIRTOOL}" rules delete-namespace "${args[@]}" "${namespace}"
       ;;
     delete-groups)
       local groups=()
       mapfile -t groups < <(echo "${RS_GROUPS[$i]}" | base64 -d)
       for group in ${groups[@]+"${groups[@]}"}; do
-        [ -z "${group}" ] && continue
-        with_retries "[${id}] mimirtool rules delete ${namespace} '${group}'" \
-          "${MIMIRTOOL}" rules delete "${args[@]}" "${namespace}" "${group}" || return 1
+        if [ -z "${group}" ]; then continue; fi
+        with_retries "[${id}] mimirtool rules delete ${namespace} '${group}'" "${MIMIRTOOL}" rules delete "${args[@]}" "${namespace}" "${group}"
       done
       ;;
     *)
@@ -135,7 +132,13 @@ done
 
 failed=()
 for i in ${RS_ID[@]+"${!RS_ID[@]}"}; do
-  if ! (process_ruleset "${i}"); then
+  # Do not use 'if (...)' or '(...) ||': bash disables 'set -e' inside
+  # conditionals, so a failing step would not stop the rule set.
+  set +e
+  (set -e; process_ruleset "${i}")
+  rc=$?
+  set -e
+  if [ "${rc}" -ne 0 ]; then
     echo_log "[${RS_ID[$i]}] FAILED"
     failed+=("${RS_ID[$i]}")
   fi

@@ -112,28 +112,14 @@ describe 'mimir-rules job' do
     end
   end
 
-  describe 'backwards compatibility (v4.2.0 rules)' do
-    let(:legacy) { "namespace: legacy\ngroups:\n- name: g\n  rules:\n  - record: a:b\n    expr: sum(up)\n" }
-
-    it 'treats rules as rule set default' do
-      r = render(base.merge('rules' => legacy))
-      expect(bash(r, 'echo "${RS_ID[*]}|${RS_NAMESPACE[*]}|${RS_SYNC_MODE[*]}"').strip).to eq('default|legacy|load')
-      expect(decoded_rules(r, 0)).to eq(YAML.safe_load(legacy))
-    end
-
-    it 'combines rules with other rule sets' do
-      r = render(base.merge('rules' => legacy, 'rulesets' => { 'zz' => { 'namespace' => 'z', 'groups' => [] } }))
-      expect(bash(r, 'echo "${RS_ID[*]}"').strip).to eq('default zz')
-    end
-
-    it 'fails when rules and rulesets.default are both set' do
-      expect do
-        render(base.merge('rules' => legacy, 'rulesets' => { 'default' => { 'namespace' => 'z', 'groups' => [] } }))
-      end.to raise_error(/both set/)
-    end
-
+  describe 'without rule sets' do
     it 'fails when enabled and nothing is defined' do
-      expect { render(base) }.to raise_error(/neither 'rules' nor 'rulesets'/)
+      expect { render(base) }.to raise_error(/no 'rulesets' defined/)
+    end
+
+    it 'accepts a rule set as a YAML string' do
+      r = render(base.merge('rulesets' => { 'x' => "namespace: n\ngroups: []\n" }))
+      expect(bash(r, 'echo "${RS_NAMESPACE[*]}"').strip).to eq('n')
     end
 
     it 'renders nothing when disabled' do

@@ -31,16 +31,7 @@
     p('mimir-rules.rulesets', {}).each do |id, value|
       rulesets[id.to_s] = parse.call("rulesets.#{id}", value)
     end
-    if_p('mimir-rules.rules') do |legacy|
-      if rulesets.key?('default')
-        raise "mimir-rules: 'rules' (legacy, rule set 'default') and 'rulesets.default' are both set; use only one"
-      end
-      # v4.2.0 format: {namespace, groups}, inherits all top-level settings
-      rulesets['default'] = parse.call('rules', legacy)
-    end
-    if rulesets.empty?
-      raise "mimir-rules: enabled but neither 'rules' nor 'rulesets' are defined"
-    end
+    raise "mimir-rules: enabled but no 'rulesets' defined" if rulesets.empty?
   end
 
   active = []
