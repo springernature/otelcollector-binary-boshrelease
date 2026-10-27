@@ -113,47 +113,205 @@ Parameters (see `jobs/otelcollector-bin/spec`):
             exporters: [debug]
 ```
 
-# mimir-rules job
+# Mimir jobs
 
-The `mimir-rules` job uploads Prometheus/Mimir recording (or alerting) rules to Mimir
-with [mimirtool](https://grafana.com/docs/mimir/latest/manage/tools/mimirtool/)
-(`mimirtool rules load|sync`). Before the upload, it checks the rules with `mimirtool rules check`.
-It has no long-running process (empty `monit`).
+Two jobs manage Mimir with [mimirtool](https://grafana.com/docs/mimir/latest/manage/tools/mimirtool/).
+Neither runs a long-running process (empty `monit`). They work the same way:
 
-* **post-start**: runs on every start or deploy of the instance. If `fail_on_error: true`
-  (the default), a failed upload fails the deploy.
-* **errand**: you can run the same logic on demand. If the job is colocated in an instance group, run:
-  `bosh -d <dep> run-errand mimir-rules`
-* **bootstrap only**: by default (`bootstrap_only: true`) the upload only runs on the
-  bootstrap instance of the instance group. The other instances log "not bootstrap" and skip it.
-* The rules must define a `namespace` (validated at render time, the deploy fails otherwise).
-* Logs go to `/var/vcap/sys/log/mimir-rules/mimir-rules.log`. The API key is never printed.
+* **post-start**: runs on every start or deploy of the instance.
+* **errand**: runs the same logic on demand. If the job is colocated in an instance group, run
+  `bosh -d <dep> run-errand mimir-rules` or `bosh -d <dep> run-errand mimir-alertmanager`.
+* **bootstrap only**: by default (`bootstrap_only: true`) they only run on the bootstrap
+  instance of the instance group. The other instances log "not bootstrap" and skip.
+* Entries (`rulesets` / `configs`) are hashes keyed by id, so separate ops files can add or
+  replace entries without indexes. They run one after another, sorted by id, with retries and
+  backoff (5s, 10s, 20s, ...) per mimirtool API call.
+* If one entry fails, it is reported and **the others continue**. At the end, the job exits
+  non-zero only if `fail_on_error: true` and any entry failed.
+* `enabled: false` on an entry skips it. It does **not** delete anything in Mimir.
+* Configuration errors (missing namespace, duplicated namespace or tenant, invalid modes...)
+  are validated at render time, so the deploy fails before touching any VM.
+* Logs go to `/var/vcap/sys/log/<job>/<job>.log`. API keys and receiver credentials are never printed.
 
-Parameters (see `jobs/mimir-rules/spec`):
+## mimir-rules job
+
+Uploads rule sets (recording rules, alerting rules or both). Each rule set has its own namespace,
+tenant, mode and groups, and is rendered to its own rules file. Before uploading, each rule set
+runs `mimirtool rules check` and `mimirtool rules lint --dry-run` (report only, never rewrites).
 
 | Property | Description | Default |
 |---|---|---|
 | `mimir-rules.enabled` | Enable rules sync | `true` |
-| `mimir-rules.address` | Mimir base URL (mimirtool calls `<address>/prometheus/config/v1/rules`) | |
-| `mimir-rules.tenant_id` | Tenant id (`X-Scope-OrgID`) | |
-| `mimir-rules.rules` | Rules content in mimirtool format (`{namespace, groups}`); YAML string or hash | |
-| `mimir-rules.auth.user` | Optional basic auth user (`MIMIR_API_USER`) | |
-| `mimir-rules.auth.key` | Optional API key / password (`MIMIR_API_KEY`) | |
-| `mimir-rules.sync_mode` | `load` (create/update groups), `sync` (idempotent, prunes removed groups in the namespace), `delete-namespace` (delete the whole namespace defined in the rules) or `delete-groups` (delete only the groups defined in the rules) | `load` |
-| `mimir-rules.fail_on_error` | If true, a failed sync fails post-start (and the deploy) | `true` |
+| `mimir-rules.address` | Default Mimir base URL for all rule sets (mimirtool calls `<address>/prometheus/config/v1/rules`) | |
+| `mimir-rules.tenant_id` | Default tenant id (`X-Scope-OrgID`) for all rule sets | |
+| `mimir-rules.auth.user` | Default optional basic auth user (`MIMIR_API_USER`) | |
+| `mimir-rules.auth.key` | Default optional API key / password (`MIMIR_API_KEY`) | |
+| `mimir-rules.sync_mode` | Default mode for all rule sets (see below) | `load` |
+| `mimir-rules.rulesets` | Hash of rule sets keyed by id (see below) | `{}` |
+| `mimir-rules.rules` | Legacy (v4.2.0): one rule set `{namespace, groups}`, YAML string or hash. Treated as rule set `default` | |
+| `mimir-rules.fail_on_error` | If true, the job fails (and the deploy) when any rule set failed | `true` |
 | `mimir-rules.bootstrap_only` | Only run on the bootstrap instance of the instance group | `true` |
-| `mimir-rules.retries` | Number of attempts before giving up (backoff 5s, 10s, 20s, ...) | `5` |
+| `mimir-rules.retries` | Number of attempts per API call before giving up | `5` |
 
-Example (see also `manifest/deployment-add-mimir-rules.yml`):
+Rule set fields:
+
+| Field | Required | Default | Notes |
+|---|---|---|---|
+| `namespace` | yes | | Non-empty. Unique per `(address, tenant_id)` |
+| `groups` | yes | | mimirtool/Prometheus groups, passed through as-is (`interval`, `source_tenants`, `evaluation_delay`, `limit`, `record`/`alert` rules, `for`, `keep_firing_for`, `labels`, `annotations`) |
+| `tenant_id` | no | `mimir-rules.tenant_id` | |
+| `address` | no | `mimir-rules.address` | |
+| `sync_mode` | no | `mimir-rules.sync_mode` | `load`, `sync`, `delete-namespace` or `delete-groups` |
+| `enabled` | no | `true` | `false` skips the rule set, nothing is deleted |
+| `auth.user` / `auth.key` | no | `mimir-rules.auth.*` | Per rule set credentials |
+
+Modes:
+
+* `load`: creates or updates the groups of the rule set. Groups removed from the manifest stay in Mimir.
+* `sync`: idempotent. Creates, updates and **prunes groups removed from the manifest**. It is always
+  scoped with `--namespaces=<namespace>`, so it never touches namespaces it doesn't own.
+* `delete-namespace`: deletes the rule set namespace.
+* `delete-groups`: deletes only the groups listed in the rule set.
+
+Recording rules and alerts in separate ops files, each adding a rule set:
+
+```yaml
+# 60-recording-rules.yml
+- type: replace
+  path: /instance_groups/name=otelcollector/jobs/name=mimir-rules/properties/mimir-rules?/rulesets?/recording?
+  value:
+    namespace: snpaas-key-metrics
+    groups:
+    - name: key-metrics
+      interval: 1m
+      rules:
+      - record: job:up:sum
+        expr: sum by (job) (up)
+
+# 61-alerting-rules.yml
+- type: replace
+  path: /instance_groups/name=otelcollector/jobs/name=mimir-rules/properties/mimir-rules?/rulesets?/alerts-bosh?
+  value:
+    namespace: snpaas-alerts-bosh
+    sync_mode: sync
+    groups:
+    - name: bosh
+      rules:
+      - alert: BoshJobDown
+        expr: up{job="bosh"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.instance }} is down ({{ $value | humanizePercentage }})"
+```
+
+with the job defined once (see `manifest/deployment-add-mimir-rules.yml`):
 
 ```yaml
 - name: mimir-rules
   release: otelcollector-binary
   properties:
     mimir-rules:
-      address: https://mimir.example.com
-      tenant_id: my-tenant
-      rules: ((recording_rules))   # e.g. bosh deploy --var-file recording_rules=rules.yml
+      address: ((mimir_api))
+      tenant_id: ((management_tenant))
+      sync_mode: sync
+```
+
+### Deleting a namespace
+
+Removing a rule set from the manifest only **stops managing** its namespace; the rules stay in Mimir.
+To delete it:
+
+1. Set `sync_mode: delete-namespace` on the rule set (or `delete-groups` to delete only its groups) and deploy once.
+2. Remove the rule set from the manifest and deploy again. Otherwise every deploy deletes it again.
+
+### Upgrading from v4.2.0
+
+No change is needed. `mimir-rules.rules` keeps working as rule set `default`, inheriting the top-level
+`address`, `tenant_id`, `auth` and `sync_mode`. It can be combined with `rulesets`, but not with
+`rulesets.default`.
+
+## mimir-alertmanager job
+
+Uploads the Alertmanager configuration (and its templates) for one or more tenants. Mimir holds one
+Alertmanager configuration per tenant, so `tenant_id` must be unique per address across the enabled configs.
+
+| Property | Description | Default |
+|---|---|---|
+| `mimir-alertmanager.enabled` | Enable Alertmanager configuration upload | `true` |
+| `mimir-alertmanager.address` | Default Mimir base URL for all configs | |
+| `mimir-alertmanager.auth.user` | Default optional basic auth user (`MIMIR_API_USER`) | |
+| `mimir-alertmanager.auth.key` | Default optional API key / password (`MIMIR_API_KEY`) | |
+| `mimir-alertmanager.configs` | Hash of configs keyed by id (see below) | `{}` |
+| `mimir-alertmanager.fail_on_error` | If true, the job fails (and the deploy) when any config failed | `false` |
+| `mimir-alertmanager.bootstrap_only` | Only run on the bootstrap instance of the instance group | `true` |
+| `mimir-alertmanager.retries` | Number of attempts per API call before giving up | `5` |
+
+Config fields:
+
+| Field | Required | Default | Notes |
+|---|---|---|---|
+| `tenant_id` | yes | | Unique per address |
+| `mode` | no | `load` | `load`: `mimirtool alertmanager verify` and then `load` (replaces the full config, idempotent). `delete`: deletes the tenant config |
+| `config` | yes (`load`) | | `alertmanager.yml` as a hash (ops files can patch it) or a YAML string |
+| `templates` | no | `{}` | Template file name => content, passed byte-for-byte |
+| `address` | no | `mimir-alertmanager.address` | |
+| `enabled` | no | `true` | `false` skips the config, nothing is deleted |
+| `auth.user` / `auth.key` | no | `mimir-alertmanager.auth.*` | Per config credentials |
+
+Example with receiver credentials from CredHub (see `manifest/deployment-add-mimir-alertmanager.yml`):
+
+```yaml
+- name: mimir-alertmanager
+  release: otelcollector-binary
+  properties:
+    mimir-alertmanager:
+      address: ((mimir_api))
+      configs:
+        management:
+          tenant_id: ((management_tenant))
+          config:
+            route:
+              receiver: slack
+              group_by: [alertname]
+            receivers:
+            - name: slack
+              slack_configs:
+              - api_url: ((slack_webhook_url))   # CredHub
+                title: '{{ template "sn.title" . }}'
+          templates:
+            sn.tmpl: |
+              {{ define "sn.title" }}[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}{{ end }}
+```
+
+To delete a tenant configuration, set `mode: delete` on the config, deploy once, then remove it from the manifest.
+
+The rendered configuration files are written to `/var/vcap/data/mimir-alertmanager/` only while the job
+runs, and are removed afterwards because they contain receiver credentials.
+
+## Rendering notes
+
+* Rules, Alertmanager configs and templates are rendered from parsed data (`YAML.dump`) and passed
+  base64-encoded to the scripts, so Go templates (`{{ $labels.x }}`, `{{ $value }}`), `%`, `$` and YAML
+  special characters reach Mimir unchanged (covered by the specs in `spec/`).
+* BOSH `((var))` interpolation happens before rendering. Rules or templates that contain a literal
+  `((` / `))` are **not supported**.
+* Empty groups (`rules: []`) are allowed.
+
+## Mimir prerequisites
+
+* Rules that use `source_tenants` need `-tenant-federation.enabled=true` and
+  `-ruler.tenant-federation.enabled=true`.
+* The Alertmanager must be enabled for the target tenant (`-alertmanager.*`, and
+  `alertmanager_receivers_firewall_*` if it is used).
+* The API credentials need ruler and alertmanager write permissions.
+
+## Template tests
+
+```
+bundle install
+bundle exec rspec
 ```
 
 # Updating the collector binary

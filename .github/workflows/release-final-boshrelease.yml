@@ -16,7 +16,23 @@ env:
 permissions: {}
 
 jobs:
+  template-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Run job template specs
+      run: |
+        sudo gem install --no-document bundler
+        bundle config set --local path .bundle
+        bundle install
+        bundle exec rspec
+
   build-bosh-release:
+    needs: template-tests
     runs-on: ubuntu-latest
     permissions:
       contents: write

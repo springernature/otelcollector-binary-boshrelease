@@ -1,0 +1,11 @@
+# Adds the 'recording' rule set to the mimir-rules job (requires deployment-add-mimir-rules.yml)
+- type: replace
+  path: /instance_groups/name=otelcollector/jobs/name=mimir-rules/properties/mimir-rules?/rulesets?/recording?
+  value:
+    namespace: key-metrics
+    groups:
+    - name: key-metrics
+      interval: 1m
+      rules:
+      - record: job:up:sum
+        expr: sum by (job) (up)

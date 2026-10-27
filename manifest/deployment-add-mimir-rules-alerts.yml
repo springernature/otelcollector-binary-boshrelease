@@ -1,0 +1,15 @@
+# Adds the 'alerts' rule set to the mimir-rules job (requires deployment-add-mimir-rules.yml)
+- type: replace
+  path: /instance_groups/name=otelcollector/jobs/name=mimir-rules/properties/mimir-rules?/rulesets?/alerts?
+  value:
+    namespace: alerts
+    groups:
+    - name: targets
+      rules:
+      - alert: TargetDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }} of job {{ $labels.job }} is down"

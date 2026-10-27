@@ -15,3 +15,5 @@ releases/**/*.tgz
 #*
 .downloads
 credentials.yml
+Gemfile.lock
+.bundle

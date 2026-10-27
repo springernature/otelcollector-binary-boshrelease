@@ -1,0 +1,59 @@
+---
+name: mimir-alertmanager
+description: Upload Mimir Alertmanager configurations (and templates) per tenant with mimirtool (post-start and errand)
+
+templates:
+  bin/post-start.erb: bin/post-start
+  bin/run.erb: bin/run                 # errand entrypoint (re-apply all configs)
+  bin/sync.sh: bin/sync.sh             # shared logic
+  data/properties.sh.erb: data/properties.sh
+  data/configs.sh.erb: data/configs.sh
+
+packages:
+- mimirtool-linux-amd64
+- bosh-helpers
+
+properties:
+  mimir-alertmanager.enabled:
+    description: "Enable Alertmanager configuration upload"
+    default: true
+  mimir-alertmanager.address:
+    description: "Default Mimir base URL for all configs"
+  mimir-alertmanager.auth.user:
+    description: "Default optional basic auth user (MIMIR_API_USER) for all configs"
+  mimir-alertmanager.auth.key:
+    description: "Default optional API key / password (MIMIR_API_KEY) for all configs"
+  mimir-alertmanager.configs:
+    description: |
+      Hash of Alertmanager configurations keyed by id (ops files can add/replace entries by key). Each config:
+        tenant_id: (required) tenant id (X-Scope-OrgID); unique per address across enabled configs
+        mode: (optional, default load) 'load' (verify and replace the full tenant config) or 'delete' (delete the tenant config)
+        config: (required for load) alertmanager.yml content, as a hash or a YAML string
+        templates: (optional) hash of template file name => content
+        address, auth.user, auth.key: (optional) override the top-level defaults
+        enabled: (optional, default true) false skips the config; it does NOT delete anything
+      Processed sorted by id.
+    default: {}
+    example:
+      management:
+        tenant_id: management
+        config:
+          route:
+            receiver: slack
+          receivers:
+          - name: slack
+            slack_configs:
+            - api_url: ((slack_webhook_url))
+              title: '{{ template "sn.title" . }}'
+        templates:
+          sn.tmpl: |
+            {{ define "sn.title" }}[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}{{ end }}
+  mimir-alertmanager.fail_on_error:
+    description: "If true, the job exits non-zero (failing post-start and the deploy) when any config failed. The other configs are always processed"
+    default: false
+  mimir-alertmanager.bootstrap_only:
+    description: "Only run on the bootstrap instance of the instance group"
+    default: true
+  mimir-alertmanager.retries:
+    description: "Number of attempts per mimirtool API call before giving up (backoff 5s, 10s, 20s, ...)"
+    default: 5
