@@ -1,0 +1,45 @@
+name: otelcollector-binary
+version: 5.0.2
+commit_hash: 8271f03
+uncommitted_changes: false
+jobs:
+- name: mimir-alertmanager
+  version: 9314e15dcb773f034083fcfa6819657d3e53e759af243e72d3bb347d00328842
+  fingerprint: 9314e15dcb773f034083fcfa6819657d3e53e759af243e72d3bb347d00328842
+  sha1: sha256:f3d2985d4e490d98b56e65dbc63269761319d9a427f812223b18a7f745cfa6b7
+  packages:
+  - mimirtool-linux-amd64
+  - bosh-helpers
+- name: mimir-rules
+  version: 64a7459a83feeb877d429d06b532524a5cccf2f2f3abc05438803150e492e0d8
+  fingerprint: 64a7459a83feeb877d429d06b532524a5cccf2f2f3abc05438803150e492e0d8
+  sha1: sha256:dac946cb78d9bef595d4b13b9f86e6c33909a17516d3f967ce68dc8c40bbd3bf
+  packages:
+  - mimirtool-linux-amd64
+  - bosh-helpers
+- name: otelcollector-bin
+  version: 14056d71de545df12767a5d627acb956f58b6e39b0412260bf509774fe54747f
+  fingerprint: 14056d71de545df12767a5d627acb956f58b6e39b0412260bf509774fe54747f
+  sha1: sha256:f7186548117f89d0491059e6a0d9d8edbf14cd1f01e01b245177afce90a13020
+  packages:
+  - otelcollector-linux-amd64
+packages:
+- name: bosh-helpers
+  version: 04875dd73de3bae96a5a2f1eb13b3eba54e997e449afdf2c83adc51153bab3e0
+  fingerprint: 04875dd73de3bae96a5a2f1eb13b3eba54e997e449afdf2c83adc51153bab3e0
+  sha1: sha256:9d470e440e6afa9030aab2dba85b95ce0f4880241967cbdb878e3a83b8cd995e
+  dependencies: []
+- name: mimirtool-linux-amd64
+  version: 25438623b60ccddd38fd02051ac16c74ad540d994c269e8f3ec233c9ab1ac2f6
+  fingerprint: 25438623b60ccddd38fd02051ac16c74ad540d994c269e8f3ec233c9ab1ac2f6
+  sha1: sha256:249bb53bff2f099c59bdb8661226be989fe5cf9eefaaf087b7ac4da9254c27ad
+  dependencies: []
+- name: otelcollector-linux-amd64
+  version: 2c9e1943b1d0c56e75f69926a90e1e0d57b186c86f9fc47e6985937d5aef2bf5
+  fingerprint: 2c9e1943b1d0c56e75f69926a90e1e0d57b186c86f9fc47e6985937d5aef2bf5
+  sha1: sha256:613dc19760a6cbeecbbb97f5cbfb6ecd06bc5b93181d2ab196bdaa40407a7687
+  dependencies: []
+license:
+  version: 54ff7ca67def519276a064d4f3e2622f06112df8bd1837350f26daf2a5b03200
+  fingerprint: 54ff7ca67def519276a064d4f3e2622f06112df8bd1837350f26daf2a5b03200
+  sha1: sha256:8de8dce6750b0d000b7362f41bf665c181b2deb7552250f8e948682d731fe896
