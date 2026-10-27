@@ -50,7 +50,7 @@ properties:
             {{ define "sn.title" }}[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}{{ end }}
   mimir-alertmanager.fail_on_error:
     description: "If true, the job exits non-zero (failing post-start and the deploy) when any config failed. The other configs are always processed"
-    default: false
+    default: true
   mimir-alertmanager.bootstrap_only:
     description: "Only run on the bootstrap instance of the instance group"
     default: true

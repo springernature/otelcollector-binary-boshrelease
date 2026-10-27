@@ -56,8 +56,6 @@ properties:
             for: 5m
             annotations:
               summary: "{{ $labels.instance }} is down"
-  mimir-rules.rules:
-    description: "Legacy (v4.2.0): one rule set in mimirtool format ({namespace, groups}); YAML string or hash. Treated as rule set 'default' with the top-level settings. Cannot be used together with rulesets.default"
   mimir-rules.fail_on_error:
     description: "If true, the job exits non-zero (failing post-start and the deploy) when any rule set failed. The other rule sets are always processed"
     default: true

@@ -71,8 +71,9 @@ with_retries() {
   done
 }
 
-# Process one config. Runs in a subshell (see main loop), so credentials
-# exported here do not leak to the other configs. Never print MIMIR_API_KEY.
+# Process one config. Runs in a subshell with 'set -e' (see main loop): any
+# failing command aborts only this config. Credentials exported here do not
+# leak to the other configs. Never print MIMIR_API_KEY.
 process_config() {
   local i="${1}"
   local id="${AM_ID[$i]}"
@@ -93,23 +94,21 @@ process_config() {
   echo_log "[${id}] tenant=${AM_TENANT_ID[$i]} address=${AM_ADDRESS[$i]} mode=${mode}"
   case "${mode}" in
     load)
-      mkdir -p "${dir}/templates" || return 1
-      echo "${AM_CONFIG[$i]}" | base64 -d > "${file}" || return 1
+      mkdir -p "${dir}/templates"
+      echo "${AM_CONFIG[$i]}" | base64 -d > "${file}"
       local -n contents="AM_TEMPLATES_${i}"
       mapfile -t names < <(echo "${AM_TEMPLATE_NAMES[$i]}" | base64 -d)
       for n in ${contents[@]+"${!contents[@]}"}; do
         name="${names[$n]}"
-        echo "${contents[$n]}" | base64 -d > "${dir}/templates/${name}" || return 1
+        echo "${contents[$n]}" | base64 -d > "${dir}/templates/${name}"
         templates+=("${dir}/templates/${name}")
       done
       echo_log "[${id}] mimirtool alertmanager verify (${#templates[@]} templates)"
-      "${MIMIRTOOL}" alertmanager verify "${file}" ${templates[@]+"${templates[@]}"} || return 1
-      with_retries "[${id}] mimirtool alertmanager load" \
-        "${MIMIRTOOL}" alertmanager load "${args[@]}" "${file}" ${templates[@]+"${templates[@]}"} || return 1
+      "${MIMIRTOOL}" alertmanager verify "${file}" ${templates[@]+"${templates[@]}"}
+      with_retries "[${id}] mimirtool alertmanager load" "${MIMIRTOOL}" alertmanager load "${args[@]}" "${file}" ${templates[@]+"${templates[@]}"}
       ;;
     delete)
-      with_retries "[${id}] mimirtool alertmanager delete" \
-        "${MIMIRTOOL}" alertmanager delete "${args[@]}" || return 1
+      with_retries "[${id}] mimirtool alertmanager delete" "${MIMIRTOOL}" alertmanager delete "${args[@]}"
       ;;
     *)
       echo_log "[${id}] unknown mode '${mode}'"
@@ -129,7 +128,13 @@ done
 
 failed=()
 for i in ${AM_ID[@]+"${!AM_ID[@]}"}; do
-  if ! (process_config "${i}"); then
+  # Do not use 'if (...)' or '(...) ||': bash disables 'set -e' inside
+  # conditionals, so a failing step would not stop the config.
+  set +e
+  (set -e; process_config "${i}")
+  rc=$?
+  set -e
+  if [ "${rc}" -ne 0 ]; then
     echo_log "[${AM_ID[$i]}] FAILED"
     failed+=("${AM_ID[$i]}")
   fi
