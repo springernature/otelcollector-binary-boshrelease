@@ -1,0 +1,28 @@
+# Adds the mimir-alertmanager job (post-start + errand) to the otelcollector instance group.
+# The Slack webhook comes from CredHub (((slack_webhook_url))).
+# Usage: bosh deploy ... -o deployment-add-mimir-alertmanager.yml \
+#          -v mimir_address=https://mimir.example.com -v mimir_tenant_id=my-tenant
+- type: replace
+  path: /instance_groups/name=otelcollector/jobs/name=mimir-alertmanager?
+  value:
+    name: mimir-alertmanager
+    release: otelcollector-binary
+    properties:
+      mimir-alertmanager:
+        address: ((mimir_address))
+        configs:
+          main:
+            tenant_id: ((mimir_tenant_id))
+            config:
+              route:
+                receiver: slack
+                group_by: [alertname]
+              receivers:
+              - name: slack
+                slack_configs:
+                - api_url: ((slack_webhook_url))
+                  send_resolved: true
+                  title: '{{ template "sn.title" . }}'
+            templates:
+              sn.tmpl: |
+                {{ define "sn.title" }}[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}{{ end }}

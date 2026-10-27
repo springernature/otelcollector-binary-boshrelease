@@ -15,23 +15,8 @@ export INSTANCE_BOOTSTRAP=<% if spec.bootstrap == true %>1<% else %>0<% end %>
 export INSTANCE_NAME="<%= spec.name %>"
 export INSTANCE_ID="<%= spec.id %>"
 
-# job properties
+# job properties (per rule set settings are in data/rulesets.sh)
 export ENABLED=<%= p('mimir-rules.enabled') ? 'true' : 'false' %>
 export BOOTSTRAP_ONLY=<%= p('mimir-rules.bootstrap_only') ? 'true' : 'false' %>
 export FAIL_ON_ERROR=<%= p('mimir-rules.fail_on_error') ? 'true' : 'false' %>
 export RETRIES=<%= Integer(p('mimir-rules.retries')) %>
-<%
-  mode = p('mimir-rules.sync_mode').to_s
-  modes = %w(load sync delete-namespace delete-groups)
-  raise "mimir-rules.sync_mode must be one of: #{modes.join(', ')}" unless modes.include?(mode)
--%>
-export SYNC_MODE=<%= Shellwords.escape(mode) %>
-<% raise "mimir-rules.address and tenant_id are required" if p('mimir-rules.enabled') && (p('mimir-rules.address', '').empty? || p('mimir-rules.tenant_id', '').empty?) -%>
-export MIMIR_ADDRESS=<%= Shellwords.escape(p('mimir-rules.address', '')) %>
-export MIMIR_TENANT_ID=<%= Shellwords.escape(p('mimir-rules.tenant_id', '')) %>
-<% if_p('mimir-rules.auth.user') do |user| -%>
-export MIMIR_API_USER=<%= Shellwords.escape(user) %>
-<% end -%>
-<% if_p('mimir-rules.auth.key') do |key| -%>
-export MIMIR_API_KEY=<%= Shellwords.escape(key) %>
-<% end -%>

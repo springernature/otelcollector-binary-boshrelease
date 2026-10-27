@@ -1,13 +1,13 @@
 ---
 name: mimir-rules
-description: Upload Prometheus/Mimir recording/alerting rules with mimirtool (post-start and errand)
+description: Upload Prometheus/Mimir recording/alerting rule sets with mimirtool (post-start and errand)
 
 templates:
   bin/post-start.erb: bin/post-start
   bin/run.erb: bin/run                 # errand entrypoint (on-demand resync)
-  bin/sync.sh.erb: bin/sync.sh         # shared logic
-  config/rules.yaml.erb: config/rules.yaml
+  bin/sync.sh: bin/sync.sh             # shared logic
   data/properties.sh.erb: data/properties.sh
+  data/rulesets.sh.erb: data/rulesets.sh
 
 packages:
 - mimirtool-linux-amd64
@@ -18,24 +18,52 @@ properties:
     description: "Enable rules sync"
     default: true
   mimir-rules.address:
-    description: "Mimir base URL (mimirtool calls <address>/prometheus/config/v1/rules)"
+    description: "Default Mimir base URL for all rule sets (mimirtool calls <address>/prometheus/config/v1/rules)"
   mimir-rules.tenant_id:
-    description: "Tenant id (X-Scope-OrgID)"
-  mimir-rules.rules:
-    description: "Rules content in mimirtool format ({namespace, groups}); YAML string or hash"
+    description: "Default tenant id (X-Scope-OrgID) for all rule sets"
   mimir-rules.auth.user:
-    description: "Optional basic auth user (MIMIR_API_USER)"
+    description: "Default optional basic auth user (MIMIR_API_USER) for all rule sets"
   mimir-rules.auth.key:
-    description: "Optional API key / password (MIMIR_API_KEY)"
+    description: "Default optional API key / password (MIMIR_API_KEY) for all rule sets"
   mimir-rules.sync_mode:
-    description: "'load' (create/update groups), 'sync' (idempotent, prunes removed groups in the namespace), 'delete-namespace' (delete the whole namespace defined in the rules) or 'delete-groups' (delete only the groups defined in the rules)"
+    description: "Default mode for all rule sets: 'load' (create/update groups), 'sync' (idempotent, prunes removed groups in the rule set namespace only), 'delete-namespace' (delete the rule set namespace) or 'delete-groups' (delete only the groups defined in the rule set)"
     default: load
+  mimir-rules.rulesets:
+    description: |
+      Hash of rule sets keyed by id (ops files can add/replace entries by key). Each rule set:
+        namespace: (required) Mimir namespace, unique per (address, tenant_id)
+        groups: (required) array of groups in mimirtool/Prometheus format (record and/or alert rules), passed through as-is
+        tenant_id, address, sync_mode, auth.user, auth.key: (optional) override the top-level defaults
+        enabled: (optional, default true) false skips the rule set; it does NOT delete anything
+      Processed sorted by id.
+    default: {}
+    example:
+      recording:
+        namespace: snpaas-key-metrics
+        groups:
+        - name: key-metrics
+          rules:
+          - record: job:up:sum
+            expr: sum by (job) (up)
+      alerts-bosh:
+        namespace: snpaas-alerts-bosh
+        sync_mode: sync
+        groups:
+        - name: bosh
+          rules:
+          - alert: BoshJobDown
+            expr: up{job="bosh"} == 0
+            for: 5m
+            annotations:
+              summary: "{{ $labels.instance }} is down"
+  mimir-rules.rules:
+    description: "Legacy (v4.2.0): one rule set in mimirtool format ({namespace, groups}); YAML string or hash. Treated as rule set 'default' with the top-level settings. Cannot be used together with rulesets.default"
   mimir-rules.fail_on_error:
-    description: "If true, a failed sync fails post-start (and the deploy)"
+    description: "If true, the job exits non-zero (failing post-start and the deploy) when any rule set failed. The other rule sets are always processed"
     default: true
   mimir-rules.bootstrap_only:
     description: "Only run on the bootstrap instance of the instance group"
     default: true
   mimir-rules.retries:
-    description: "Number of attempts before giving up"
+    description: "Number of attempts per mimirtool API call before giving up (backoff 5s, 10s, 20s, ...)"
     default: 5

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# job name & index of this VM within cluster
+export DEPLOYMENT_NAME="<%= spec.deployment %>"
+
+# e.g. JOB_NAME=redis, JOB_INDEX=0
+export JOB_NAME='<%= name %>'
+export JOB_INDEX="<%= spec.index %>"
+# full job name, like redis/0 or webapp/3
+export JOB_FULL="$JOB_NAME/$JOB_INDEX"
+export JOB_AZ="<%= spec.az %>"
+
+export INSTANCE_BOOTSTRAP=<% if spec.bootstrap == true %>1<% else %>0<% end %>
+export INSTANCE_NAME="<%= spec.name %>"
+export INSTANCE_ID="<%= spec.id %>"
+
+# job properties (per config settings are in data/configs.sh)
+export ENABLED=<%= p('mimir-alertmanager.enabled') ? 'true' : 'false' %>
+export BOOTSTRAP_ONLY=<%= p('mimir-alertmanager.bootstrap_only') ? 'true' : 'false' %>
+export FAIL_ON_ERROR=<%= p('mimir-alertmanager.fail_on_error') ? 'true' : 'false' %>
+export RETRIES=<%= Integer(p('mimir-alertmanager.retries')) %>
